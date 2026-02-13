@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from opentelemetry import trace
+
 from .manual import (
     record_coherence,
     record_drift,
@@ -30,33 +34,31 @@ class AIPOTelRecorder:
 
     def __init__(
         self,
-        tracer_provider=None,
+        tracer_provider: Any = None,
         tracer_name: str = "aip-otel-exporter",
     ) -> None:
-        from opentelemetry import trace
-
         self._tracer = trace.get_tracer(tracer_name, tracer_provider=tracer_provider)
 
-    def record_integrity_check(self, signal):
+    def record_integrity_check(self, signal: dict[str, Any]) -> trace.Span:
         """Record an AIP integrity check as an OTel span."""
         return record_integrity_check(self._tracer, signal)
 
-    def record_verification(self, result):
+    def record_verification(self, result: dict[str, Any]) -> trace.Span:
         """Record an AAP verification result as an OTel span."""
         return record_verification(self._tracer, result)
 
-    def record_coherence(self, result):
+    def record_coherence(self, result: dict[str, Any]) -> trace.Span:
         """Record an AAP coherence check as an OTel span."""
         return record_coherence(self._tracer, result)
 
-    def record_drift(self, alerts, traces_analyzed: int = 0):
+    def record_drift(self, alerts: list[dict[str, Any]], traces_analyzed: int = 0) -> trace.Span:
         """Record AAP drift detection as an OTel span."""
         return record_drift(self._tracer, alerts, traces_analyzed)
 
 
 # Lazy import for AIPInstrumentor since opentelemetry-instrumentation is an
 # optional dependency.
-def __getattr__(name: str):
+def __getattr__(name: str) -> type:
     if name == "AIPInstrumentor":
         try:
             from .instrumentor import AIPInstrumentor

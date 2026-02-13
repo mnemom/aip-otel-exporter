@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@mnemom/aip-otel-exporter)](https://www.npmjs.com/package/@mnemom/aip-otel-exporter)
 [![PyPI](https://img.shields.io/pypi/v/aip-otel-exporter)](https://pypi.org/project/aip-otel-exporter/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![AIP](https://img.shields.io/badge/AIP-compliant-green.svg)](https://github.com/mnemom/aip)
+[![AAP](https://img.shields.io/badge/AAP-compliant-green.svg)](https://github.com/mnemom/aap)
 
 # aip-otel-exporter
 

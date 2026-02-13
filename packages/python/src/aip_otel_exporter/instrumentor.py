@@ -12,21 +12,22 @@ from __future__ import annotations
 
 import importlib
 from collections.abc import Collection
+from types import ModuleType
 from typing import Any
 
 from opentelemetry import trace
-from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor  # type: ignore[attr-defined]
 
 from .manual import record_integrity_check, record_verification
 
 
-class AIPInstrumentor(BaseInstrumentor):
+class AIPInstrumentor(BaseInstrumentor):  # type: ignore[misc]
     """Auto-instruments AIP client ``check()`` and AAP ``verify_trace()`` calls."""
 
     _original_check: Any = None
     _original_verify: Any = None
-    _aip_client_cls: Any = None
-    _aap_verify_module: Any = None
+    _aip_client_cls: type[Any] | None = None
+    _aap_verify_module: ModuleType | None = None
 
     def instrumentation_dependencies(self) -> Collection[str]:
         return []
@@ -69,7 +70,7 @@ class AIPInstrumentor(BaseInstrumentor):
                         record_verification(tracer, result)
                     return result
 
-                aap_verify_mod.verify_trace = wrapped_verify
+                aap_verify_mod.verify_trace = wrapped_verify  # type: ignore[attr-defined]
         except ImportError:
             pass
 
@@ -88,6 +89,6 @@ class AIPInstrumentor(BaseInstrumentor):
             self._aap_verify_module is not None
             and AIPInstrumentor._original_verify is not None
         ):
-            self._aap_verify_module.verify_trace = AIPInstrumentor._original_verify
+            self._aap_verify_module.verify_trace = AIPInstrumentor._original_verify  # type: ignore[attr-defined]
             AIPInstrumentor._original_verify = None
             self._aap_verify_module = None
