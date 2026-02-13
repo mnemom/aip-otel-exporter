@@ -16,7 +16,9 @@ from types import ModuleType
 from typing import Any
 
 from opentelemetry import trace
-from opentelemetry.instrumentation.instrumentor import BaseInstrumentor  # type: ignore[attr-defined]
+from opentelemetry.instrumentation.instrumentor import (  # type: ignore[attr-defined]
+    BaseInstrumentor,
+)
 
 from .manual import record_integrity_check, record_verification
 
