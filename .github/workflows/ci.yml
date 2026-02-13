@@ -110,7 +110,7 @@ jobs:
 
       - name: Publish
         if: steps.check.outputs.exists == 'false'
-        run: npm publish --workspace=packages/typescript --provenance --access public
+        run: npm publish --workspace=packages/typescript --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
