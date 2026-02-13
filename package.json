@@ -1,0 +1,12 @@
+{
+  "name": "aip-otel-exporter-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/typescript"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=packages/typescript",
+    "test": "npm run test --workspace=packages/typescript",
+    "lint": "npm run lint --workspace=packages/typescript"
+  }
+}

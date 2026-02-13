@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+*.pyc
+__pycache__/
+*.egg-info/
+.eggs/
+build/
+*.whl
+.venv/
+.env
