@@ -1,11 +1,14 @@
 """Tests for manual recording functions."""
 
-import pytest
 from opentelemetry.trace import StatusCode
 
-from aip_otel_exporter import record_integrity_check, record_verification, record_coherence, record_drift
 from aip_otel_exporter import attributes as attr
-
+from aip_otel_exporter import (
+    record_coherence,
+    record_drift,
+    record_integrity_check,
+    record_verification,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures (test data)

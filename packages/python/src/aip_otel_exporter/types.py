@@ -8,8 +8,7 @@ for graceful handling of missing data.
 
 from __future__ import annotations
 
-from typing import List, Optional, TypedDict
-
+from typing import TypedDict
 
 # --- Duck-typed AIP inputs ---
 
@@ -20,19 +19,19 @@ class ConcernInput(TypedDict, total=False):
     category: str
     severity: str
     description: str
-    evidence: Optional[str]
-    relevant_card_field: Optional[str]
-    relevant_conscience_value: Optional[str]
+    evidence: str | None
+    relevant_card_field: str | None
+    relevant_conscience_value: str | None
 
 
 class ConscienceContextInput(TypedDict, total=False):
     """Duck-typed ConscienceContext."""
 
     consultation_depth: str
-    values_checked: List[str]
-    conflicts: List[str]
-    supports: List[str]
-    considerations: List[str]
+    values_checked: list[str]
+    conflicts: list[str]
+    supports: list[str]
+    considerations: list[str]
 
 
 class AnalysisMetadataInput(TypedDict, total=False):
@@ -83,12 +82,12 @@ class CheckpointInput(TypedDict, total=False):
     provider: str
     model: str
     verdict: str
-    concerns: List[ConcernInput]
+    concerns: list[ConcernInput]
     reasoning_summary: str
     conscience_context: ConscienceContextInput
     window_position: WindowPosition
     analysis_metadata: AnalysisMetadataInput
-    linked_trace_id: Optional[str]
+    linked_trace_id: str | None
 
 
 class IntegritySignalInput(TypedDict, total=False):
@@ -109,7 +108,7 @@ class ViolationInput(TypedDict, total=False):
     type: str
     severity: str
     description: str
-    trace_field: Optional[str]
+    trace_field: str | None
 
 
 class WarningInput(TypedDict, total=False):
@@ -117,15 +116,15 @@ class WarningInput(TypedDict, total=False):
 
     type: str
     description: str
-    trace_field: Optional[str]
+    trace_field: str | None
 
 
 class VerificationMetadataInput(TypedDict, total=False):
     """Duck-typed VerificationMetadata."""
 
     algorithm_version: str
-    checks_performed: List[str]
-    duration_ms: Optional[float]
+    checks_performed: list[str]
+    duration_ms: float | None
 
 
 class VerificationResultInput(TypedDict, total=False):
@@ -135,8 +134,8 @@ class VerificationResultInput(TypedDict, total=False):
     trace_id: str
     card_id: str
     timestamp: str
-    violations: List[ViolationInput]
-    warnings: List[WarningInput]
+    violations: list[ViolationInput]
+    warnings: list[WarningInput]
     verification_metadata: VerificationMetadataInput
     similarity_score: float
 
@@ -153,9 +152,9 @@ class ValueAlignmentConflict(TypedDict, total=False):
 class ValueAlignmentInput(TypedDict, total=False):
     """Duck-typed ValueAlignment."""
 
-    matched: List[str]
-    unmatched: List[str]
-    conflicts: List[ValueAlignmentConflict]
+    matched: list[str]
+    unmatched: list[str]
+    conflicts: list[ValueAlignmentConflict]
 
 
 class CoherenceResultInput(TypedDict, total=False):
@@ -165,7 +164,7 @@ class CoherenceResultInput(TypedDict, total=False):
     score: float
     value_alignment: ValueAlignmentInput
     proceed: bool
-    conditions: List[str]
+    conditions: list[str]
 
 
 class DriftIndicator(TypedDict, total=False):
@@ -184,7 +183,7 @@ class DriftAnalysisInput(TypedDict, total=False):
     sustained_traces: int
     threshold: float
     drift_direction: str
-    specific_indicators: List[DriftIndicator]
+    specific_indicators: list[DriftIndicator]
 
 
 class DriftAlertInput(TypedDict, total=False):
@@ -196,7 +195,7 @@ class DriftAlertInput(TypedDict, total=False):
     detection_timestamp: str
     analysis: DriftAnalysisInput
     recommendation: str
-    trace_ids: List[str]
+    trace_ids: list[str]
 
 
 class IntegrityDriftAlertInput(TypedDict, total=False):
@@ -205,7 +204,7 @@ class IntegrityDriftAlertInput(TypedDict, total=False):
     alert_id: str
     agent_id: str
     session_id: str
-    checkpoint_ids: List[str]
+    checkpoint_ids: list[str]
     integrity_similarity: float
     sustained_checks: int
     severity: str

@@ -7,8 +7,41 @@ name = "aip-otel-exporter"
 version = "0.1.0"
 description = "OpenTelemetry exporter for AIP integrity checkpoints and AAP verification results"
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 requires-python = ">=3.9"
+authors = [{ name = "Mnemom.ai", email = "dev@mnemom.ai" }]
+keywords = [
+    "opentelemetry",
+    "otel",
+    "aip",
+    "aap",
+    "integrity",
+    "alignment",
+    "observability",
+    "ai",
+    "agent",
+    "safety",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Monitoring",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/mnemom/aip-otel-exporter"
+Documentation = "https://github.com/mnemom/aip-otel-exporter#readme"
+Repository = "https://github.com/mnemom/aip-otel-exporter"
+Issues = "https://github.com/mnemom/aip-otel-exporter/issues"
+Changelog = "https://github.com/mnemom/aip-otel-exporter/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 otel = [
@@ -27,7 +60,10 @@ all = [
 ]
 dev = [
     "pytest>=7.0",
+    "pytest-cov>=5.0",
     "pytest-benchmark>=4.0",
+    "mypy>=1.10",
+    "ruff>=0.4",
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-instrumentation>=0.40b0",
@@ -35,3 +71,27 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aip_otel_exporter"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+python_version = "3.9"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "SIM"]
+ignore = ["E501", "A002", "B011"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B007"]
+
+[tool.coverage.run]
+source = ["src/aip_otel_exporter"]
+
+[tool.coverage.report]
+show_missing = true

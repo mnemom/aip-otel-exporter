@@ -11,7 +11,8 @@ Requires ``opentelemetry-instrumentation`` as an optional dependency.
 from __future__ import annotations
 
 import importlib
-from typing import Any, Collection
+from collections.abc import Collection
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor

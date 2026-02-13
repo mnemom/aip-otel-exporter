@@ -1,12 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+*.whl
+build/
+.venv/
+venv/
+
+# Testing
+.tox/
+.coverage*
+.pytest_cache/
+htmlcov/
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+.pytype/
+
+# Node
 node_modules/
 dist/
 *.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
-*.pyc
-__pycache__/
-*.egg-info/
-.eggs/
-build/
-*.whl
-.venv/
+Thumbs.db
+
+# Environment
 .env
+.env.*
+*.pem
+*.key
+
+# Claude Code
+.claude/
+.mcp.json
+*.tgz

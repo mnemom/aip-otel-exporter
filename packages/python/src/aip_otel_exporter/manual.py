@@ -10,7 +10,7 @@ Four functions mirroring the TypeScript manual API:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from opentelemetry import trace
 
@@ -20,7 +20,7 @@ from .span_builder import build_span
 
 def record_integrity_check(
     tracer: trace.Tracer,
-    signal: Dict[str, Any],
+    signal: dict[str, Any],
 ) -> trace.Span:
     """
     Record an AIP IntegritySignal as an OTel span.
@@ -44,7 +44,7 @@ def record_integrity_check(
 
     # --- Attributes (22 domain + 2 GenAI aliases) ---
 
-    attributes: Dict[str, Any] = {
+    attributes: dict[str, Any] = {
         # Checkpoint
         attr.AIP_INTEGRITY_CHECKPOINT_ID: cp.get("checkpoint_id"),
         attr.AIP_INTEGRITY_VERDICT: cp.get("verdict"),
@@ -85,7 +85,7 @@ def record_integrity_check(
 
     # --- Events ---
 
-    events: List[Dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
 
     # One event per concern
     if concerns:
@@ -115,7 +115,7 @@ def record_integrity_check(
 
 def record_verification(
     tracer: trace.Tracer,
-    result: Dict[str, Any],
+    result: dict[str, Any],
 ) -> trace.Span:
     """
     Record an AAP VerificationResult as an OTel span.
@@ -130,7 +130,7 @@ def record_verification(
     warnings = result.get("warnings")
     checks_performed = meta.get("checks_performed")
 
-    attributes: Dict[str, Any] = {
+    attributes: dict[str, Any] = {
         attr.AAP_VERIFICATION_RESULT: result.get("verified"),
         attr.AAP_VERIFICATION_SIMILARITY_SCORE: result.get("similarity_score"),
         attr.AAP_VERIFICATION_VIOLATIONS_COUNT: (
@@ -147,7 +147,7 @@ def record_verification(
         ),
     }
 
-    events: List[Dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
 
     if violations:
         for violation in violations:
@@ -167,7 +167,7 @@ def record_verification(
 
 def record_coherence(
     tracer: trace.Tracer,
-    result: Dict[str, Any],
+    result: dict[str, Any],
 ) -> trace.Span:
     """
     Record an AAP CoherenceResult as an OTel span.
@@ -180,7 +180,7 @@ def record_coherence(
     matched = value_alignment.get("matched")
     conflicts = value_alignment.get("conflicts")
 
-    attributes: Dict[str, Any] = {
+    attributes: dict[str, Any] = {
         attr.AAP_COHERENCE_COMPATIBLE: result.get("compatible"),
         attr.AAP_COHERENCE_SCORE: result.get("score"),
         attr.AAP_COHERENCE_PROCEED: result.get("proceed"),
@@ -197,7 +197,7 @@ def record_coherence(
 
 def record_drift(
     tracer: trace.Tracer,
-    alerts: List[Dict[str, Any]],
+    alerts: list[dict[str, Any]],
     traces_analyzed: int = 0,
 ) -> trace.Span:
     """
@@ -209,15 +209,15 @@ def record_drift(
     """
     alerts = alerts or []
 
-    attributes: Dict[str, Any] = {
+    attributes: dict[str, Any] = {
         attr.AAP_DRIFT_ALERTS_COUNT: len(alerts) if alerts else 0,
         attr.AAP_DRIFT_TRACES_ANALYZED: traces_analyzed,
     }
 
-    events: List[Dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
 
     for alert in alerts:
-        event_attrs: Dict[str, Any] = {}
+        event_attrs: dict[str, Any] = {}
         analysis = alert.get("analysis") or {}
 
         if alert.get("alert_type") is not None:

@@ -1,6 +1,9 @@
 # @mnemom/aip-otel-exporter
 
-OpenTelemetry exporter for [AIP](https://github.com/mnemom/agent-integrity-protocol) integrity checkpoints and [AAP](https://github.com/mnemom/agent-alignment-protocol) verification results.
+[![npm](https://img.shields.io/npm/v/@mnemom/aip-otel-exporter)](https://www.npmjs.com/package/@mnemom/aip-otel-exporter)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](../../LICENSE)
+
+OpenTelemetry exporter for [AIP](https://github.com/mnemom/aip) integrity checkpoints and [AAP](https://github.com/mnemom/aap) verification results.
 
 Send AIP/AAP telemetry to any OTel-compatible observability platform (Langfuse, Arize Phoenix, Datadog, Grafana) with zero custom code.
 
@@ -166,4 +169,4 @@ See `dashboards/README.md` for import instructions.
 
 ## License
 
-MIT
+[Apache 2.0](../../LICENSE)

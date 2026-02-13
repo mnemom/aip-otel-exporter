@@ -8,7 +8,7 @@ and verification results.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from opentelemetry import metrics
 
@@ -16,8 +16,8 @@ from . import attributes as attr
 
 
 def create_aip_metrics(
-    meter_provider: Optional[metrics.MeterProvider] = None,
-) -> Dict[str, Any]:
+    meter_provider: metrics.MeterProvider | None = None,
+) -> dict[str, Any]:
     """
     Create AIP/AAP metrics instruments.
 
@@ -28,7 +28,7 @@ def create_aip_metrics(
     Returns:
         A dict mapping short names to OTel metric instruments.
     """
-    kwargs: Dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
     if meter_provider is not None:
         kwargs["meter_provider"] = meter_provider
     meter = metrics.get_meter("aip-otel-exporter", **kwargs)
@@ -76,8 +76,8 @@ def create_aip_metrics(
 
 
 def record_integrity_metrics(
-    metrics_dict: Dict[str, Any],
-    signal: Dict[str, Any],
+    metrics_dict: dict[str, Any],
+    signal: dict[str, Any],
 ) -> None:
     """
     Record metrics from an AIP integrity signal.
@@ -120,8 +120,8 @@ def record_integrity_metrics(
 
 
 def record_verification_metrics(
-    metrics_dict: Dict[str, Any],
-    result: Dict[str, Any],
+    metrics_dict: dict[str, Any],
+    result: dict[str, Any],
 ) -> None:
     """
     Record metrics from an AAP verification result.

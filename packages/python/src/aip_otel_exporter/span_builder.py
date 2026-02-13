@@ -10,7 +10,7 @@ Provides a generic helper that:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from opentelemetry import context, trace
 from opentelemetry.trace import SpanKind, StatusCode
@@ -18,7 +18,7 @@ from opentelemetry.trace import SpanKind, StatusCode
 
 def set_optional_attributes(
     span: trace.Span,
-    attrs: Dict[str, Any],
+    attrs: dict[str, Any],
 ) -> None:
     """Set attributes on a span, skipping any whose value is None."""
     for key, value in attrs.items():
@@ -29,8 +29,8 @@ def set_optional_attributes(
 def build_span(
     tracer: trace.Tracer,
     span_name: str,
-    attributes: Dict[str, Any],
-    events: Optional[List[Dict[str, Any]]] = None,
+    attributes: dict[str, Any],
+    events: list[dict[str, Any]] | None = None,
 ) -> trace.Span:
     """
     Build, populate, end, and return an OTel span.

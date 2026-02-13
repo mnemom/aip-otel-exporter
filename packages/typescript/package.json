@@ -21,15 +21,20 @@
   },
   "files": [
     "dist",
-    "dashboards"
+    "dashboards",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "bench": "vitest bench",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "peerDependencies": {
     "@opentelemetry/api": ">=1.4.0"
@@ -41,6 +46,7 @@
   },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/context-async-hooks": "^2.5.1",
     "@opentelemetry/resources": "^1.30.0",
     "@opentelemetry/sdk-metrics": "^1.30.0",
     "@opentelemetry/sdk-trace-base": "^1.30.0",
@@ -60,7 +66,15 @@
     "arize",
     "datadog"
   ],
-  "license": "MIT",
+  "author": "Mnemom.ai",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/mnemom/aip-otel-exporter#readme",
+  "bugs": {
+    "url": "https://github.com/mnemom/aip-otel-exporter/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mnemom/aip-otel-exporter.git",
