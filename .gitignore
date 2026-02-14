@@ -42,6 +42,9 @@ Thumbs.db
 *.pem
 *.key
 
+# Internal design docs
+architecture/
+
 # Claude Code
 .claude/
 .mcp.json
