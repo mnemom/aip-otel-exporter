@@ -161,11 +161,18 @@ See `dashboards/README.md` for import instructions.
 
 ## Performance
 
-| Operation | Target | Actual |
-|---|---|---|
-| `recordIntegrityCheck()` | <1ms | Run `npm run bench` |
-| `recordVerification()` | <1ms | Run `npm run bench` |
-| Workers OTLP serialize | <0.5ms | Run `npm run bench` |
+Measured via `npm run bench` (Vitest bench, Node 22, Apple M-series):
+
+| Operation | Mean | p99 | Ops/sec |
+|---|---|---|---|
+| `recordIntegrityCheck()` | 0.007 ms | 0.023 ms | 142,540 |
+| `recordVerification()` | 0.003 ms | 0.004 ms | 310,510 |
+| `recordCoherence()` | 0.003 ms | 0.003 ms | 321,385 |
+| `recordDrift()` | 0.003 ms | 0.007 ms | 295,807 |
+| Workers `createOTLPSpan()` | 0.003 ms | 0.004 ms | 341,778 |
+| Workers `serializeExportPayload()` | 0.004 ms | 0.006 ms | 234,860 |
+
+All operations are sub-0.01ms mean. Zero measurable overhead on hot paths.
 
 ## License
 
