@@ -210,6 +210,8 @@ All operations are sub-0.01ms mean. Zero measurable overhead on hot paths.
 
 ## Documentation
 
+Full observability guide: **[docs.mnemom.ai/guides/observability](https://docs.mnemom.ai/guides/observability)**
+
 | Document | Description |
 |---|---|
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
