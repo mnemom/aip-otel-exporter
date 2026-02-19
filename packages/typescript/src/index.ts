@@ -75,6 +75,7 @@ export type {
   CheckpointInput,
   ConscienceContextInput,
   AnalysisMetadataInput,
+  AttestationInput,
   VerificationMetadataInput,
   ValueAlignmentInput,
   DriftAnalysisInput,

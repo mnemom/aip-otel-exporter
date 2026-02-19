@@ -59,6 +59,15 @@ import {
   AIP_CONSCIENCE_VALUES_CHECKED_COUNT,
   AIP_CONSCIENCE_CONFLICTS_COUNT,
 
+  // Attestation attributes
+  AIP_ATTESTATION_INPUT_COMMITMENT,
+  AIP_ATTESTATION_CHAIN_HASH,
+  AIP_ATTESTATION_MERKLE_ROOT,
+  AIP_ATTESTATION_SIGNATURE_VERIFIED,
+  AIP_ATTESTATION_CERTIFICATE_ID,
+  AIP_ATTESTATION_ZK_PROVEN,
+  AIP_ATTESTATION_ZK_PROOF_TIME_MS,
+
   // Window summary attributes
   AIP_WINDOW_SIZE,
   AIP_WINDOW_INTEGRITY_RATIO,
@@ -157,6 +166,7 @@ export function createWorkersExporter(
     const cp = signal?.checkpoint;
     const meta = cp?.analysis_metadata;
     const conscience = cp?.conscience_context;
+    const att = cp?.attestation;
     const win = signal?.window_summary;
 
     const attributes: Record<string, unknown> = {
@@ -185,6 +195,15 @@ export function createWorkersExporter(
       [AIP_CONSCIENCE_VALUES_CHECKED_COUNT]:
         conscience?.values_checked?.length,
       [AIP_CONSCIENCE_CONFLICTS_COUNT]: conscience?.conflicts?.length,
+
+      // Attestation
+      [AIP_ATTESTATION_INPUT_COMMITMENT]: att?.input_commitment,
+      [AIP_ATTESTATION_CHAIN_HASH]: att?.chain_hash,
+      [AIP_ATTESTATION_MERKLE_ROOT]: att?.merkle_root,
+      [AIP_ATTESTATION_SIGNATURE_VERIFIED]: att?.signature_verified,
+      [AIP_ATTESTATION_CERTIFICATE_ID]: att?.certificate_id,
+      [AIP_ATTESTATION_ZK_PROVEN]: att?.zk_proven,
+      [AIP_ATTESTATION_ZK_PROOF_TIME_MS]: att?.zk_proof_time_ms,
 
       // Window summary
       [AIP_WINDOW_SIZE]: win?.size,

@@ -1,8 +1,8 @@
 /**
  * Records an AIP IntegritySignal as an OpenTelemetry span.
  *
- * Maps all 22 planned attributes from the checkpoint, signal, analysis_metadata,
- * conscience_context, and window_summary onto a single INTERNAL span.
+ * Maps all 27 planned attributes from the checkpoint, signal, analysis_metadata,
+ * conscience_context, attestation, and window_summary onto a single INTERNAL span.
  * Concerns are emitted as individual span events, and a drift alert event is
  * added when the window summary indicates active drift.
  */
@@ -41,6 +41,15 @@ import {
   AIP_CONSCIENCE_VALUES_CHECKED_COUNT,
   AIP_CONSCIENCE_CONFLICTS_COUNT,
 
+  // Attestation attributes
+  AIP_ATTESTATION_INPUT_COMMITMENT,
+  AIP_ATTESTATION_CHAIN_HASH,
+  AIP_ATTESTATION_MERKLE_ROOT,
+  AIP_ATTESTATION_SIGNATURE_VERIFIED,
+  AIP_ATTESTATION_CERTIFICATE_ID,
+  AIP_ATTESTATION_ZK_PROVEN,
+  AIP_ATTESTATION_ZK_PROOF_TIME_MS,
+
   // Window summary attributes
   AIP_WINDOW_SIZE,
   AIP_WINDOW_INTEGRITY_RATIO,
@@ -54,7 +63,7 @@ import {
 import { buildSpan } from "./span-builder.js";
 
 /**
- * Record an IntegritySignal as an OTel span with all 22 attributes, concern
+ * Record an IntegritySignal as an OTel span with all 27 attributes, concern
  * events, and an optional drift alert event.
  *
  * All inputs are duck-typed -- every field is accessed via optional chaining so
@@ -67,9 +76,10 @@ export function recordIntegrityCheck(
   const cp = signal?.checkpoint;
   const meta = cp?.analysis_metadata;
   const conscience = cp?.conscience_context;
+  const att = cp?.attestation;
   const win = signal?.window_summary;
 
-  // --- Attributes (22 domain + 2 GenAI aliases) ---
+  // --- Attributes (27 domain + 2 GenAI aliases) ---
 
   const attributes: Record<string, unknown> = {
     // Checkpoint
@@ -96,6 +106,15 @@ export function recordIntegrityCheck(
     [AIP_CONSCIENCE_CONSULTATION_DEPTH]: conscience?.consultation_depth,
     [AIP_CONSCIENCE_VALUES_CHECKED_COUNT]: conscience?.values_checked?.length,
     [AIP_CONSCIENCE_CONFLICTS_COUNT]: conscience?.conflicts?.length,
+
+    // Attestation
+    [AIP_ATTESTATION_INPUT_COMMITMENT]: att?.input_commitment,
+    [AIP_ATTESTATION_CHAIN_HASH]: att?.chain_hash,
+    [AIP_ATTESTATION_MERKLE_ROOT]: att?.merkle_root,
+    [AIP_ATTESTATION_SIGNATURE_VERIFIED]: att?.signature_verified,
+    [AIP_ATTESTATION_CERTIFICATE_ID]: att?.certificate_id,
+    [AIP_ATTESTATION_ZK_PROVEN]: att?.zk_proven,
+    [AIP_ATTESTATION_ZK_PROOF_TIME_MS]: att?.zk_proof_time_ms,
 
     // Window summary
     [AIP_WINDOW_SIZE]: win?.size,

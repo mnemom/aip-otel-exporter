@@ -33,6 +33,18 @@ export const AIP_CONSCIENCE_VALUES_CHECKED_COUNT =
   "aip.conscience.values_checked_count";
 export const AIP_CONSCIENCE_CONFLICTS_COUNT = "aip.conscience.conflicts_count";
 
+// --- AIP Attestation Attributes ---
+
+export const AIP_ATTESTATION_INPUT_COMMITMENT =
+  "aip.attestation.input_commitment";
+export const AIP_ATTESTATION_CHAIN_HASH = "aip.attestation.chain_hash";
+export const AIP_ATTESTATION_MERKLE_ROOT = "aip.attestation.merkle_root";
+export const AIP_ATTESTATION_SIGNATURE_VERIFIED =
+  "aip.attestation.signature_verified";
+export const AIP_ATTESTATION_CERTIFICATE_ID = "aip.attestation.certificate_id";
+export const AIP_ATTESTATION_ZK_PROVEN = "aip.attestation.zk_proven";
+export const AIP_ATTESTATION_ZK_PROOF_TIME_MS = "aip.attestation.zk_proof_time_ms";
+
 // --- AIP Window Attributes ---
 
 export const AIP_WINDOW_SIZE = "aip.window.size";

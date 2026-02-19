@@ -54,6 +54,21 @@ export interface ConscienceContextInput {
   considerations?: string[];
 }
 
+/** Duck-typed Attestation (matches AIP's attestation shape from analyze response). */
+export interface AttestationInput {
+  input_commitment?: string;
+  chain_hash?: string;
+  prev_chain_hash?: string | null;
+  merkle_root?: string;
+  merkle_leaf_index?: number | null;
+  signature_verified?: boolean;
+  certificate_id?: string;
+  signature?: string;
+  signing_key_id?: string;
+  zk_proven?: boolean;
+  zk_proof_time_ms?: number;
+}
+
 /** Duck-typed AnalysisMetadata. */
 export interface AnalysisMetadataInput {
   analysis_model?: string;
@@ -93,6 +108,7 @@ export interface CheckpointInput {
   conscience_context?: ConscienceContextInput;
   window_position?: { index?: number; window_size?: number };
   analysis_metadata?: AnalysisMetadataInput;
+  attestation?: AttestationInput;
   linked_trace_id?: string | null;
 }
 
