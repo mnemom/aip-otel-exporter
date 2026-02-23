@@ -51,8 +51,8 @@ export interface AIPMetrics {
  */
 export function createAIPMetrics(meterProvider?: MeterProvider): AIPMetrics {
   const meter: Meter = meterProvider
-    ? meterProvider.getMeter("@mnemom/aip-otel-exporter", "0.1.0")
-    : metrics.getMeter("@mnemom/aip-otel-exporter", "0.1.0");
+    ? meterProvider.getMeter("@mnemom/aip-otel-exporter", "0.4.0")
+    : metrics.getMeter("@mnemom/aip-otel-exporter", "0.4.0");
 
   return {
     integrityChecks: meter.createCounter(METRIC_AIP_INTEGRITY_CHECKS_TOTAL, {

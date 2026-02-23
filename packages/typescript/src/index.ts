@@ -38,7 +38,7 @@ export function createAIPOTelRecorder(
   config?: AIPOTelRecorderConfig
 ): AIPOTelRecorder {
   const tracerName = config?.tracerName ?? "@mnemom/aip-otel-exporter";
-  const tracerVersion = config?.tracerVersion ?? "0.1.0";
+  const tracerVersion = config?.tracerVersion ?? "0.4.0";
 
   const tracer: Tracer = config?.tracerProvider
     ? config.tracerProvider.getTracer(tracerName, tracerVersion)
