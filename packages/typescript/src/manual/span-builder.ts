@@ -11,8 +11,23 @@
 import { SpanKind, SpanStatusCode, context, trace } from "@opentelemetry/api";
 import type { Span, Tracer, Attributes } from "@opentelemetry/api";
 
+/** Maximum length for string attribute values. Longer values are truncated. */
+const MAX_ATTRIBUTE_LENGTH = 4096;
+
+/**
+ * Truncate a string value if it exceeds MAX_ATTRIBUTE_LENGTH.
+ * Appends " [truncated]" to indicate the value was shortened.
+ */
+function truncateIfNeeded(value: string): string {
+  if (value.length > MAX_ATTRIBUTE_LENGTH) {
+    return value.slice(0, MAX_ATTRIBUTE_LENGTH - 12) + " [truncated]";
+  }
+  return value;
+}
+
 /**
  * Set attributes on a span, skipping any whose value is undefined or null.
+ * String values exceeding MAX_ATTRIBUTE_LENGTH are truncated.
  */
 export function setOptionalAttributes(
   span: Span,
@@ -20,7 +35,8 @@ export function setOptionalAttributes(
 ): void {
   for (const [key, value] of Object.entries(attrs)) {
     if (value !== undefined && value !== null) {
-      span.setAttribute(key, value as string | number | boolean);
+      const safeValue = typeof value === "string" ? truncateIfNeeded(value) : value;
+      span.setAttribute(key, safeValue as string | number | boolean);
     }
   }
 }

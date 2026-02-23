@@ -81,6 +81,20 @@ export function generateSpanId(): string {
 // Attribute conversion
 // ---------------------------------------------------------------------------
 
+/** Maximum length for string attribute values. Longer values are truncated. */
+export const MAX_ATTRIBUTE_LENGTH = 4096;
+
+/**
+ * Truncate a string value if it exceeds MAX_ATTRIBUTE_LENGTH.
+ * Appends " [truncated]" to indicate the value was shortened.
+ */
+export function truncateIfNeeded(value: string): string {
+  if (value.length > MAX_ATTRIBUTE_LENGTH) {
+    return value.slice(0, MAX_ATTRIBUTE_LENGTH - 12) + " [truncated]";
+  }
+  return value;
+}
+
 /**
  * Convert a single JS value to the OTLP attribute wire format.
  * Returns `null` for undefined / null values so callers can filter them out.
@@ -92,7 +106,7 @@ export function toOTLPAttribute(
   if (value === undefined || value === null) return null;
 
   if (typeof value === "string") {
-    return { key, value: { stringValue: value } };
+    return { key, value: { stringValue: truncateIfNeeded(value) } };
   }
   if (typeof value === "boolean") {
     return { key, value: { boolValue: value } };
@@ -113,7 +127,7 @@ export function toOTLPAttribute(
   }
 
   // Fallback: coerce to string
-  return { key, value: { stringValue: String(value) } };
+  return { key, value: { stringValue: truncateIfNeeded(String(value)) } };
 }
 
 /**

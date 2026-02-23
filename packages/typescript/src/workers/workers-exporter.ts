@@ -113,6 +113,10 @@ import { createOTLPSpan, serializeExportPayload } from "./otlp-serializer.js";
 export function createWorkersExporter(
   config: WorkersExporterConfig,
 ): WorkersOTelExporter {
+  if (!config.endpoint.startsWith('https://')) {
+    console.warn('[aip-otel-exporter] WARNING: OTLP endpoint does not use HTTPS. Telemetry data and credentials will be transmitted in cleartext. Set endpoint to https:// for production use.');
+  }
+
   const serviceName = config.serviceName ?? "aip-otel-exporter";
   const maxBatchSize = config.maxBatchSize ?? 100;
 
@@ -126,7 +130,9 @@ export function createWorkersExporter(
     buffer.push(span);
     if (buffer.length >= maxBatchSize) {
       // Fire-and-forget auto-flush; callers should still use ctx.waitUntil(flush())
-      void flush();
+      void flush().catch((err) => {
+        console.warn('[aip-otel-exporter] Auto-flush failed:', err instanceof Error ? err.message : 'unknown error');
+      });
     }
   }
 
@@ -151,11 +157,15 @@ export function createWorkersExporter(
       headers["Authorization"] = config.authorization;
     }
 
-    await fetch(config.endpoint, {
+    const response = await fetch(config.endpoint, {
       method: "POST",
       headers,
       body,
     });
+
+    if (!response.ok) {
+      console.warn(`[aip-otel-exporter] OTLP export failed: HTTP ${response.status} ${response.statusText}`);
+    }
   }
 
   // -------------------------------------------------------------------
