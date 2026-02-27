@@ -96,12 +96,32 @@ export const AIP_DRIFT_SEVERITY = "aip.drift.severity";
 export const AIP_DRIFT_DIRECTION = "aip.drift.drift_direction";
 export const AIP_DRIFT_MESSAGE = "aip.drift.message";
 
+// --- Reclassification Attributes ---
+
+export const RECLASSIFICATION_AGENT_ID =
+  "gen_ai.safety.reclassification.agent_id";
+export const RECLASSIFICATION_CHECKPOINT_ID =
+  "gen_ai.safety.reclassification.checkpoint_id";
+export const RECLASSIFICATION_TRACE_ID =
+  "gen_ai.safety.reclassification.trace_id";
+export const RECLASSIFICATION_BEFORE_VERDICT =
+  "gen_ai.safety.reclassification.before_verdict";
+export const RECLASSIFICATION_AFTER_CLASSIFICATION =
+  "gen_ai.safety.reclassification.after_classification";
+export const RECLASSIFICATION_REASON =
+  "gen_ai.safety.reclassification.reason";
+export const RECLASSIFICATION_SCORE_BEFORE =
+  "gen_ai.safety.reclassification.score_before";
+export const RECLASSIFICATION_SCORE_AFTER =
+  "gen_ai.safety.reclassification.score_after";
+
 // --- Span Names ---
 
 export const SPAN_AIP_INTEGRITY_CHECK = "aip.integrity_check";
 export const SPAN_AAP_VERIFY_TRACE = "aap.verify_trace";
 export const SPAN_AAP_CHECK_COHERENCE = "aap.check_coherence";
 export const SPAN_AAP_DETECT_DRIFT = "aap.detect_drift";
+export const SPAN_RECLASSIFICATION = "gen_ai.safety.reclassification";
 
 // --- Event Names ---
 

@@ -14,6 +14,7 @@ import { recordIntegrityCheck } from "./manual/record-integrity-check.js";
 import { recordVerification } from "./manual/record-verification.js";
 import { recordCoherence } from "./manual/record-coherence.js";
 import { recordDrift } from "./manual/record-drift.js";
+import { recordReclassification } from "./manual/record-reclassification.js";
 import type {
   AIPOTelRecorderConfig,
   AIPOTelRecorder,
@@ -21,6 +22,7 @@ import type {
   VerificationResultInput,
   CoherenceResultInput,
   DriftAlertInput,
+  ReclassificationInput,
 } from "./types.js";
 
 /**
@@ -57,6 +59,9 @@ export function createAIPOTelRecorder(
     recordDrift(alerts: DriftAlertInput[], tracesAnalyzed?: number): void {
       recordDrift(tracer, alerts, tracesAnalyzed);
     },
+    recordReclassification(input: ReclassificationInput): void {
+      recordReclassification(tracer, input);
+    },
   };
 }
 
@@ -80,6 +85,7 @@ export type {
   ValueAlignmentInput,
   DriftAnalysisInput,
   IntegrityDriftAlertInput,
+  ReclassificationInput,
   WorkersExporterConfig,
   WorkersOTelExporter,
 } from "./types.js";
@@ -92,6 +98,7 @@ export { recordIntegrityCheck } from "./manual/record-integrity-check.js";
 export { recordVerification } from "./manual/record-verification.js";
 export { recordCoherence } from "./manual/record-coherence.js";
 export { recordDrift } from "./manual/record-drift.js";
+export { recordReclassification } from "./manual/record-reclassification.js";
 export { buildSpan } from "./manual/span-builder.js";
 
 // Re-export metrics
