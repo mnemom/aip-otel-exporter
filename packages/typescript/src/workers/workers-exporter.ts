@@ -25,6 +25,7 @@ import type {
   VerificationResultInput,
   CoherenceResultInput,
   DriftAlertInput,
+  ReclassificationInput,
 } from "../types.js";
 
 import {
@@ -97,6 +98,17 @@ import {
   // AAP Drift attributes
   AAP_DRIFT_ALERTS_COUNT,
   AAP_DRIFT_TRACES_ANALYZED,
+
+  // Reclassification attributes
+  SPAN_RECLASSIFICATION,
+  RECLASSIFICATION_AGENT_ID,
+  RECLASSIFICATION_CHECKPOINT_ID,
+  RECLASSIFICATION_TRACE_ID,
+  RECLASSIFICATION_BEFORE_VERDICT,
+  RECLASSIFICATION_AFTER_CLASSIFICATION,
+  RECLASSIFICATION_REASON,
+  RECLASSIFICATION_SCORE_BEFORE,
+  RECLASSIFICATION_SCORE_AFTER,
 } from "../attributes.js";
 
 import type { OTLPSpan } from "./otlp-serializer.js";
@@ -347,6 +359,25 @@ export function createWorkersExporter(
   }
 
   // -------------------------------------------------------------------
+  // recordReclassification
+  // -------------------------------------------------------------------
+
+  function recordReclassification(input: ReclassificationInput): void {
+    const attributes: Record<string, unknown> = {
+      [RECLASSIFICATION_AGENT_ID]: input?.agent_id,
+      [RECLASSIFICATION_CHECKPOINT_ID]: input?.checkpoint_id,
+      [RECLASSIFICATION_TRACE_ID]: input?.trace_id,
+      [RECLASSIFICATION_BEFORE_VERDICT]: input?.before_verdict,
+      [RECLASSIFICATION_AFTER_CLASSIFICATION]: input?.after_classification,
+      [RECLASSIFICATION_REASON]: input?.reason,
+      [RECLASSIFICATION_SCORE_BEFORE]: input?.score_before,
+      [RECLASSIFICATION_SCORE_AFTER]: input?.score_after,
+    };
+
+    pushSpan(createOTLPSpan(SPAN_RECLASSIFICATION, attributes));
+  }
+
+  // -------------------------------------------------------------------
   // Public interface
   // -------------------------------------------------------------------
 
@@ -355,6 +386,7 @@ export function createWorkersExporter(
     recordVerification,
     recordCoherence,
     recordDrift,
+    recordReclassification,
     flush,
   };
 }

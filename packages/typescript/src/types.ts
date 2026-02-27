@@ -216,6 +216,20 @@ export interface IntegrityDriftAlertInput {
   message?: string;
 }
 
+// --- Duck-typed Reclassification input ---
+
+/** Duck-typed reclassification input for safety reclassification spans. */
+export interface ReclassificationInput {
+  agent_id?: string;
+  checkpoint_id?: string;
+  trace_id?: string;
+  before_verdict?: string;
+  after_classification?: string;
+  reason?: string;
+  score_before?: number;
+  score_after?: number;
+}
+
 // --- Recorder interface ---
 
 /** Public interface for the AIP OTel Recorder. */
@@ -228,6 +242,8 @@ export interface AIPOTelRecorder {
   recordCoherence(result: CoherenceResultInput): void;
   /** Record AAP drift detection as an OTel span. */
   recordDrift(alerts: DriftAlertInput[], tracesAnalyzed?: number): void;
+  /** Record a safety reclassification as an OTel span. */
+  recordReclassification(input: ReclassificationInput): void;
 }
 
 /** Public interface for the CF Workers exporter. */
@@ -240,6 +256,8 @@ export interface WorkersOTelExporter {
   recordCoherence(result: CoherenceResultInput): void;
   /** Record AAP drift detection (builds internal span). */
   recordDrift(alerts: DriftAlertInput[], tracesAnalyzed?: number): void;
+  /** Record a safety reclassification (builds internal span). */
+  recordReclassification(input: ReclassificationInput): void;
   /** Flush all buffered spans to the OTLP endpoint. Returns a Promise for ctx.waitUntil(). */
   flush(): Promise<void>;
 }
