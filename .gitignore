@@ -12,6 +12,8 @@ venv/
 # Testing
 .tox/
 .coverage*
+coverage.xml
+coverage/
 .pytest_cache/
 htmlcov/
 .hypothesis/
