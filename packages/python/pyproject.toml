@@ -74,6 +74,7 @@ packages = ["src/aip_otel_exporter"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov --cov-report=xml --cov-report=term"
 
 [tool.mypy]
 strict = true

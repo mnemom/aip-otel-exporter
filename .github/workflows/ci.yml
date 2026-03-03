@@ -27,7 +27,16 @@ jobs:
         run: npm run lint --workspace=packages/typescript
 
       - name: Test
-        run: npm run test --workspace=packages/typescript
+        run: npm run test:coverage --workspace=packages/typescript
+
+      - name: Upload coverage
+        if: matrix.node-version == '20'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/typescript/coverage
+          flags: typescript
+          fail_ci_if_error: false
 
       - name: Benchmark
         run: npm run bench --workspace=packages/typescript
@@ -64,16 +73,16 @@ jobs:
       - name: Test
         run: |
           cd packages/python
-          python -m pytest tests/ -v --cov=src/aip_otel_exporter --cov-report=xml
+          python -m pytest tests/ -v
 
       - name: Upload coverage
-        if: matrix.python-version == '3.12' && github.event_name == 'push'
+        if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: packages/python/coverage.xml
           flags: python
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   publish-npm:
     name: Publish to npm
