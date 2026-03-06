@@ -118,6 +118,7 @@ export interface IntegritySignalInput {
   proceed?: boolean;
   recommended_action?: string;
   window_summary?: WindowSummaryInput;
+  output_analysis?: OutputAnalysisInput;
 }
 
 // --- Duck-typed AAP inputs ---
@@ -216,6 +217,41 @@ export interface IntegrityDriftAlertInput {
   message?: string;
 }
 
+// --- Duck-typed Policy Evaluation input ---
+
+/** Duck-typed policy violation (for policy evaluation events). */
+export interface PolicyViolationInput {
+  type: string;
+  tool?: string;
+  severity: string;
+  reason: string;
+}
+
+/** Duck-typed PolicyEvaluationInput (primary CLPI input). */
+export interface PolicyEvaluationInput {
+  agent_id?: string;
+  policy_id?: string;
+  policy_version?: string;
+  verdict?: string;
+  violations_count?: number;
+  warnings_count?: number;
+  coverage_pct?: number;
+  context?: string;
+  duration_ms?: number;
+  enforcement_mode?: string;
+  violations?: PolicyViolationInput[];
+}
+
+// --- Output Analysis fields (added to IntegritySignalInput) ---
+
+/** Duck-typed output analysis metadata. */
+export interface OutputAnalysisInput {
+  output_hash?: string;
+  output_tokens?: number;
+  output_truncated?: boolean;
+  analysis_scope?: string;
+}
+
 // --- Duck-typed Reclassification input ---
 
 /** Duck-typed reclassification input for safety reclassification spans. */
@@ -244,6 +280,8 @@ export interface AIPOTelRecorder {
   recordDrift(alerts: DriftAlertInput[], tracesAnalyzed?: number): void;
   /** Record a safety reclassification as an OTel span. */
   recordReclassification(input: ReclassificationInput): void;
+  /** Record a CLPI policy evaluation as an OTel span. */
+  recordPolicyEvaluation(input: PolicyEvaluationInput): void;
 }
 
 /** Public interface for the CF Workers exporter. */
@@ -258,6 +296,8 @@ export interface WorkersOTelExporter {
   recordDrift(alerts: DriftAlertInput[], tracesAnalyzed?: number): void;
   /** Record a safety reclassification (builds internal span). */
   recordReclassification(input: ReclassificationInput): void;
+  /** Record a CLPI policy evaluation (builds internal span). */
+  recordPolicyEvaluation(input: PolicyEvaluationInput): void;
   /** Flush all buffered spans to the OTLP endpoint. Returns a Promise for ctx.waitUntil(). */
   flush(): Promise<void>;
 }

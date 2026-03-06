@@ -55,6 +55,12 @@ import {
   AIP_WINDOW_INTEGRITY_RATIO,
   AIP_WINDOW_DRIFT_ALERT_ACTIVE,
 
+  // Output analysis attributes
+  AIP_INTEGRITY_OUTPUT_HASH,
+  AIP_INTEGRITY_OUTPUT_TOKENS,
+  AIP_INTEGRITY_OUTPUT_TRUNCATED,
+  AIP_INTEGRITY_ANALYSIS_SCOPE,
+
   // GenAI forward-compat aliases
   GEN_AI_EVALUATION_VERDICT,
   GEN_AI_EVALUATION_SCORE,
@@ -78,6 +84,7 @@ export function recordIntegrityCheck(
   const conscience = cp?.conscience_context;
   const att = cp?.attestation;
   const win = signal?.window_summary;
+  const out = signal?.output_analysis;
 
   // --- Attributes (27 domain + 2 GenAI aliases) ---
 
@@ -120,6 +127,12 @@ export function recordIntegrityCheck(
     [AIP_WINDOW_SIZE]: win?.size,
     [AIP_WINDOW_INTEGRITY_RATIO]: win?.integrity_ratio,
     [AIP_WINDOW_DRIFT_ALERT_ACTIVE]: win?.drift_alert_active,
+
+    // Output analysis
+    [AIP_INTEGRITY_OUTPUT_HASH]: out?.output_hash,
+    [AIP_INTEGRITY_OUTPUT_TOKENS]: out?.output_tokens,
+    [AIP_INTEGRITY_OUTPUT_TRUNCATED]: out?.output_truncated,
+    [AIP_INTEGRITY_ANALYSIS_SCOPE]: out?.analysis_scope,
 
     // GenAI SIG forward-compat aliases
     [GEN_AI_EVALUATION_VERDICT]: cp?.verdict,

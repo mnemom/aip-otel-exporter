@@ -26,6 +26,7 @@ import type {
   CoherenceResultInput,
   DriftAlertInput,
   ReclassificationInput,
+  PolicyEvaluationInput,
 } from "../types.js";
 
 import {
@@ -109,6 +110,26 @@ import {
   RECLASSIFICATION_REASON,
   RECLASSIFICATION_SCORE_BEFORE,
   RECLASSIFICATION_SCORE_AFTER,
+
+  // Output analysis attributes
+  AIP_INTEGRITY_OUTPUT_HASH,
+  AIP_INTEGRITY_OUTPUT_TOKENS,
+  AIP_INTEGRITY_OUTPUT_TRUNCATED,
+  AIP_INTEGRITY_ANALYSIS_SCOPE,
+
+  // Policy evaluation attributes
+  SPAN_POLICY_EVALUATE,
+  EVENT_POLICY_VIOLATION,
+  POLICY_AGENT_ID,
+  POLICY_POLICY_ID,
+  POLICY_POLICY_VERSION,
+  POLICY_VERDICT,
+  POLICY_VIOLATIONS_COUNT,
+  POLICY_WARNINGS_COUNT,
+  POLICY_COVERAGE_PCT,
+  POLICY_CONTEXT,
+  POLICY_DURATION_MS,
+  POLICY_ENFORCEMENT_MODE,
 } from "../attributes.js";
 
 import type { OTLPSpan } from "./otlp-serializer.js";
@@ -190,6 +211,7 @@ export function createWorkersExporter(
     const conscience = cp?.conscience_context;
     const att = cp?.attestation;
     const win = signal?.window_summary;
+    const out = signal?.output_analysis;
 
     const attributes: Record<string, unknown> = {
       // Checkpoint
@@ -231,6 +253,12 @@ export function createWorkersExporter(
       [AIP_WINDOW_SIZE]: win?.size,
       [AIP_WINDOW_INTEGRITY_RATIO]: win?.integrity_ratio,
       [AIP_WINDOW_DRIFT_ALERT_ACTIVE]: win?.drift_alert_active,
+
+      // Output analysis
+      [AIP_INTEGRITY_OUTPUT_HASH]: out?.output_hash,
+      [AIP_INTEGRITY_OUTPUT_TOKENS]: out?.output_tokens,
+      [AIP_INTEGRITY_OUTPUT_TRUNCATED]: out?.output_truncated,
+      [AIP_INTEGRITY_ANALYSIS_SCOPE]: out?.analysis_scope,
 
       // GenAI SIG forward-compat aliases
       [GEN_AI_EVALUATION_VERDICT]: cp?.verdict,
@@ -359,6 +387,45 @@ export function createWorkersExporter(
   }
 
   // -------------------------------------------------------------------
+  // recordPolicyEvaluation
+  // -------------------------------------------------------------------
+
+  function recordPolicyEvaluation(input: PolicyEvaluationInput): void {
+    const attributes: Record<string, unknown> = {
+      [POLICY_AGENT_ID]: input?.agent_id,
+      [POLICY_POLICY_ID]: input?.policy_id,
+      [POLICY_POLICY_VERSION]: input?.policy_version,
+      [POLICY_VERDICT]: input?.verdict,
+      [POLICY_VIOLATIONS_COUNT]: input?.violations_count,
+      [POLICY_WARNINGS_COUNT]: input?.warnings_count,
+      [POLICY_COVERAGE_PCT]: input?.coverage_pct,
+      [POLICY_CONTEXT]: input?.context,
+      [POLICY_DURATION_MS]: input?.duration_ms,
+      [POLICY_ENFORCEMENT_MODE]: input?.enforcement_mode,
+    };
+
+    const events: Array<{ name: string; attributes: Record<string, unknown> }> =
+      [];
+
+    if (input?.violations) {
+      for (const violation of input.violations) {
+        const eventAttrs: Record<string, unknown> = {
+          type: violation.type,
+          severity: violation.severity,
+          reason: violation.reason,
+        };
+        if (violation.tool != null) eventAttrs.tool = violation.tool;
+        events.push({
+          name: EVENT_POLICY_VIOLATION,
+          attributes: eventAttrs,
+        });
+      }
+    }
+
+    pushSpan(createOTLPSpan(SPAN_POLICY_EVALUATE, attributes, events));
+  }
+
+  // -------------------------------------------------------------------
   // recordReclassification
   // -------------------------------------------------------------------
 
@@ -387,6 +454,7 @@ export function createWorkersExporter(
     recordCoherence,
     recordDrift,
     recordReclassification,
+    recordPolicyEvaluation,
     flush,
   };
 }
