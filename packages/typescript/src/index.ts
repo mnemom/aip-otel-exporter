@@ -15,6 +15,7 @@ import { recordVerification } from "./manual/record-verification.js";
 import { recordCoherence } from "./manual/record-coherence.js";
 import { recordDrift } from "./manual/record-drift.js";
 import { recordReclassification } from "./manual/record-reclassification.js";
+import { recordPolicyEvaluation } from "./manual/record-policy-evaluation.js";
 import type {
   AIPOTelRecorderConfig,
   AIPOTelRecorder,
@@ -23,6 +24,7 @@ import type {
   CoherenceResultInput,
   DriftAlertInput,
   ReclassificationInput,
+  PolicyEvaluationInput,
 } from "./types.js";
 
 /**
@@ -40,7 +42,7 @@ export function createAIPOTelRecorder(
   config?: AIPOTelRecorderConfig
 ): AIPOTelRecorder {
   const tracerName = config?.tracerName ?? "@mnemom/aip-otel-exporter";
-  const tracerVersion = config?.tracerVersion ?? "0.4.0";
+  const tracerVersion = config?.tracerVersion ?? "0.5.0";
 
   const tracer: Tracer = config?.tracerProvider
     ? config.tracerProvider.getTracer(tracerName, tracerVersion)
@@ -61,6 +63,9 @@ export function createAIPOTelRecorder(
     },
     recordReclassification(input: ReclassificationInput): void {
       recordReclassification(tracer, input);
+    },
+    recordPolicyEvaluation(input: PolicyEvaluationInput): void {
+      recordPolicyEvaluation(tracer, input);
     },
   };
 }
@@ -86,6 +91,9 @@ export type {
   DriftAnalysisInput,
   IntegrityDriftAlertInput,
   ReclassificationInput,
+  PolicyEvaluationInput,
+  PolicyViolationInput,
+  OutputAnalysisInput,
   WorkersExporterConfig,
   WorkersOTelExporter,
 } from "./types.js";
@@ -99,6 +107,7 @@ export { recordVerification } from "./manual/record-verification.js";
 export { recordCoherence } from "./manual/record-coherence.js";
 export { recordDrift } from "./manual/record-drift.js";
 export { recordReclassification } from "./manual/record-reclassification.js";
+export { recordPolicyEvaluation } from "./manual/record-policy-evaluation.js";
 export { buildSpan } from "./manual/span-builder.js";
 
 // Re-export metrics

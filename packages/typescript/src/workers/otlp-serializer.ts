@@ -207,7 +207,7 @@ export function serializeExportPayload(
           {
             scope: {
               name: "@mnemom/aip-otel-exporter",
-              version: "0.4.0",
+              version: "0.5.0",
             },
             spans,
           },

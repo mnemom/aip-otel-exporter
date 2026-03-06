@@ -115,6 +115,26 @@ export const RECLASSIFICATION_SCORE_BEFORE =
 export const RECLASSIFICATION_SCORE_AFTER =
   "gen_ai.safety.reclassification.score_after";
 
+// --- AIP Output Analysis Attributes ---
+
+export const AIP_INTEGRITY_OUTPUT_HASH = "aip.integrity.output_hash";
+export const AIP_INTEGRITY_OUTPUT_TOKENS = "aip.integrity.output_tokens";
+export const AIP_INTEGRITY_OUTPUT_TRUNCATED = "aip.integrity.output_truncated";
+export const AIP_INTEGRITY_ANALYSIS_SCOPE = "aip.integrity.analysis_scope";
+
+// --- Policy Evaluation Attributes ---
+
+export const POLICY_AGENT_ID = "policy.agent_id";
+export const POLICY_POLICY_ID = "policy.policy_id";
+export const POLICY_POLICY_VERSION = "policy.policy_version";
+export const POLICY_VERDICT = "policy.verdict";
+export const POLICY_VIOLATIONS_COUNT = "policy.violations_count";
+export const POLICY_WARNINGS_COUNT = "policy.warnings_count";
+export const POLICY_COVERAGE_PCT = "policy.coverage_pct";
+export const POLICY_CONTEXT = "policy.context";
+export const POLICY_DURATION_MS = "policy.duration_ms";
+export const POLICY_ENFORCEMENT_MODE = "policy.enforcement_mode";
+
 // --- Span Names ---
 
 export const SPAN_AIP_INTEGRITY_CHECK = "aip.integrity_check";
@@ -122,6 +142,7 @@ export const SPAN_AAP_VERIFY_TRACE = "aap.verify_trace";
 export const SPAN_AAP_CHECK_COHERENCE = "aap.check_coherence";
 export const SPAN_AAP_DETECT_DRIFT = "aap.detect_drift";
 export const SPAN_RECLASSIFICATION = "gen_ai.safety.reclassification";
+export const SPAN_POLICY_EVALUATE = "policy.evaluate";
 
 // --- Event Names ---
 
@@ -129,6 +150,7 @@ export const EVENT_AIP_CONCERN = "aip.concern";
 export const EVENT_AIP_DRIFT_ALERT = "aip.drift_alert";
 export const EVENT_AAP_VIOLATION = "aap.violation";
 export const EVENT_AAP_DRIFT_ALERT = "aap.drift_alert";
+export const EVENT_POLICY_VIOLATION = "policy.violation";
 
 // --- Metric Names ---
 
