@@ -29,8 +29,6 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Upgrade npm for OIDC trusted publishing
-        run: npm install -g npm@latest
 
       - name: Install and build
         working-directory: ${{ inputs.npm-directory }}
