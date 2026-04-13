@@ -33,8 +33,8 @@ export function instrumentAIP(options?: {
   if (state.patched) return;
 
   const tracer = options?.tracerProvider
-    ? options.tracerProvider.getTracer("@mnemom/aip-otel-exporter", "0.5.0")
-    : trace.getTracer("@mnemom/aip-otel-exporter", "0.5.0");
+    ? options.tracerProvider.getTracer("@mnemom/aip-otel-exporter", "0.6.0")
+    : trace.getTracer("@mnemom/aip-otel-exporter", "0.6.0");
 
   let AIPClient: { prototype: Record<string, AnyFunction> } | undefined;
   try {
