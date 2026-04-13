@@ -1,5 +1,15 @@
 name: Publish
 
+# Thin caller for the canonical npm publish recipe — see ADR-020.
+# All Node version, registry-url, OIDC, provenance, and SBOM logic lives in
+# mnemom/.github/.github/workflows/npm-publish.yml. To change the recipe,
+# edit the canonical workflow there; do not re-add steps inline here.
+#
+# This repo publishes a single npm package (@mnemom/aip-otel-exporter) from
+# packages/typescript via the orchestrator dispatch path. No release-event
+# trigger today (cleanup item: consider release-triggered publishing so SBOMs
+# attach to GitHub Releases).
+
 on:
   workflow_dispatch:
     inputs:
@@ -17,52 +27,18 @@ on:
 permissions: {}
 jobs:
   publish:
+    # contents: write is over-granted relative to what dispatch-publish does
+    # (the `gh release upload` step in the reusable workflow is gated on
+    # `event_name == 'release'` and never runs here). But GitHub validates
+    # caller permissions against the called workflow's declared permissions
+    # at workflow load time, before any `if:` is evaluated.
     permissions:
-      contents: read
+      contents: write
       id-token: write
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Install and build
-        working-directory: ${{ inputs.npm-directory }}
-        run: |
-          npm ci || npm install
-          npm run build --if-present
-
-      - name: Check if already published
-        id: check
-        working-directory: ${{ inputs.npm-directory }}
-        run: |
-          PKG_NAME=$(node -p "require('./package.json').name")
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || echo "")
-          if [ "$PUBLISHED" = "$PKG_VERSION" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "$PKG_NAME@$PKG_VERSION already published — skipping"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "Will publish $PKG_NAME@$PKG_VERSION"
-          fi
-
-      - name: Publish
-        if: steps.check.outputs.skip != 'true'
-        working-directory: ${{ inputs.npm-directory }}
-        run: npm publish --access public --provenance
-
-      - name: Generate SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
-        with:
-          format: cyclonedx-json
-          output-file: sbom.cdx.json
-      - name: Upload SBOM
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: sbom
-          path: sbom.cdx.json
+    # mnemom/.github @ scale/step-29-fix-artifact-name merge (ADR-020)
+    uses: mnemom/.github/.github/workflows/npm-publish.yml@0514f87f1642dfdd3ad26a32c0fe4dcbe9a478b9
+    with:
+      npm-directory: ${{ inputs.npm-directory || 'packages/typescript' }}
+      dispatch-id: ${{ inputs.dispatch-id || '' }}
+      tag: latest
+      attach-sbom-to-release: false   # dispatch path has no release to attach to
