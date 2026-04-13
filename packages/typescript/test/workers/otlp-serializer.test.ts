@@ -247,7 +247,7 @@ describe("serializeExportPayload", () => {
     // Scope
     const scope = parsed.resourceSpans[0].scopeSpans[0].scope;
     expect(scope.name).toBe("@mnemom/aip-otel-exporter");
-    expect(scope.version).toBe("0.5.0");
+    expect(scope.version).toBe("0.6.0");
 
     // Spans
     const spans = parsed.resourceSpans[0].scopeSpans[0].spans;

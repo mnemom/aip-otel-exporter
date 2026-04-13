@@ -10,6 +10,9 @@
  */
 
 import { trace, type Tracer } from "@opentelemetry/api";
+// Package version constant — kept in sync with package.json by the release process.
+// Using a constant (not a package.json import) for portability across CF Workers.
+const PACKAGE_VERSION = "0.6.0";
 import { recordIntegrityCheck } from "./manual/record-integrity-check.js";
 import { recordVerification } from "./manual/record-verification.js";
 import { recordCoherence } from "./manual/record-coherence.js";
@@ -42,7 +45,7 @@ export function createAIPOTelRecorder(
   config?: AIPOTelRecorderConfig
 ): AIPOTelRecorder {
   const tracerName = config?.tracerName ?? "@mnemom/aip-otel-exporter";
-  const tracerVersion = config?.tracerVersion ?? "0.5.0";
+  const tracerVersion = config?.tracerVersion ?? PACKAGE_VERSION;
 
   const tracer: Tracer = config?.tracerProvider
     ? config.tracerProvider.getTracer(tracerName, tracerVersion)
