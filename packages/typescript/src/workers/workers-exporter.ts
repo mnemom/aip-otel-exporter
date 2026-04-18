@@ -137,6 +137,34 @@ import type { OTLPSpan } from "./otlp-serializer.js";
 import { createOTLPSpan, serializeExportPayload } from "./otlp-serializer.js";
 
 // ---------------------------------------------------------------------------
+// Endpoint normalization
+// ---------------------------------------------------------------------------
+
+/**
+ * Grafana Cloud, Tempo, and most OTLP/HTTP receivers expect the traces
+ * subpath at `/v1/traces`. Historical deployments that were configured
+ * with just the ingest base (e.g. `https://otlp-gateway-.../otlp`)
+ * silently 404 on every flush — the OTel spec puts traces at
+ * `<base>/v1/traces`.
+ *
+ * Normalize idempotently so either shape works:
+ *
+ *   https://otlp-gateway-.../otlp            → + /v1/traces
+ *   https://otlp-gateway-.../otlp/v1/traces  → unchanged
+ *
+ * Trailing slashes are tolerated on either input.
+ */
+export function normalizeTracesEndpoint(endpoint: string): string {
+  // Iterative trim (not regex) to avoid polynomial-backtracking on
+  // operator-controlled input.
+  let end = endpoint.length;
+  while (end > 0 && endpoint.charCodeAt(end - 1) === 47 /* '/' */) end--;
+  const trimmed = endpoint.slice(0, end);
+  if (trimmed.endsWith('/v1/traces')) return trimmed;
+  return `${trimmed}/v1/traces`;
+}
+
+// ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
@@ -151,6 +179,7 @@ export function createWorkersExporter(
     console.warn('[aip-otel-exporter] WARNING: OTLP endpoint does not use HTTPS. Telemetry data and credentials will be transmitted in cleartext. Set endpoint to https:// for production use.');
   }
 
+  const endpoint = normalizeTracesEndpoint(config.endpoint);
   const serviceName = config.serviceName ?? "aip-otel-exporter";
   const maxBatchSize = config.maxBatchSize ?? 100;
 
@@ -191,7 +220,7 @@ export function createWorkersExporter(
       headers["Authorization"] = config.authorization;
     }
 
-    const response = await fetch(config.endpoint, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers,
       body,
