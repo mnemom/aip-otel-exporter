@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-04-18
+
+### Fixed
+
+- **`createWorkersExporter` now auto-normalizes the traces endpoint.**
+  OTLP/HTTP receivers (Grafana Cloud, Tempo, most collectors) expect the
+  `/v1/traces` subpath per the OTel spec. Historical deployments
+  configured with only the ingest base (e.g. `.../otlp`) silently 404'd
+  on every flush. The exporter now appends `/v1/traces` idempotently so
+  either shape works:
+  - `https://otlp-gateway-.../otlp` → POSTs to `.../otlp/v1/traces`
+  - `https://otlp-gateway-.../otlp/v1/traces` → unchanged
+  - Trailing slashes tolerated on either input.
+
+### Added
+
+- `normalizeTracesEndpoint(endpoint)` exported from `@mnemom/aip-otel-exporter/workers`
+  so callers can reuse the same normalization against ad-hoc OTLP clients
+  if needed. Four new vitest cases cover append, idempotence, and trailing-
+  slash handling.
+
+### Notes
+
+- No breaking changes. Consumers whose `OTLP_ENDPOINT` already points at
+  `/v1/traces` (gateway, observer) see no behavior change.
+- Scope version in emitted OTLP payloads bumped to `"0.7.1"`.
+- Python SDK version unchanged.
+
 ## [0.7.0] - 2026-04-17
 
 ### Added

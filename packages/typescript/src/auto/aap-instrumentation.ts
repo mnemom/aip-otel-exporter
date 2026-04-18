@@ -74,8 +74,8 @@ export function instrumentAAP(options?: {
   if (state.patched) return;
 
   const tracer = options?.tracerProvider
-    ? options.tracerProvider.getTracer("@mnemom/aip-otel-exporter", "0.7.0")
-    : trace.getTracer("@mnemom/aip-otel-exporter", "0.7.0");
+    ? options.tracerProvider.getTracer("@mnemom/aip-otel-exporter", "0.7.1")
+    : trace.getTracer("@mnemom/aip-otel-exporter", "0.7.1");
 
   let aapModule: Record<string, AnyFunction>;
   try {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { createWorkersExporter } from "../../src/workers/workers-exporter.js";
+import { createWorkersExporter, normalizeTracesEndpoint } from "../../src/workers/workers-exporter.js";
 import type { IntegritySignalInput } from "../../src/types.js";
 
 // ---------------------------------------------------------------------------
@@ -42,6 +42,54 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+describe("normalizeTracesEndpoint", () => {
+  it("appends /v1/traces to a bare OTLP base", () => {
+    expect(normalizeTracesEndpoint("https://otlp-gateway-prod.grafana.net/otlp"))
+      .toBe("https://otlp-gateway-prod.grafana.net/otlp/v1/traces");
+  });
+
+  it("is idempotent when /v1/traces is already present", () => {
+    const full = "https://otlp-gateway-prod.grafana.net/otlp/v1/traces";
+    expect(normalizeTracesEndpoint(full)).toBe(full);
+  });
+
+  it("trims trailing slashes before appending", () => {
+    expect(normalizeTracesEndpoint("https://otlp.example.com/otlp///"))
+      .toBe("https://otlp.example.com/otlp/v1/traces");
+  });
+
+  it("trims a trailing slash off a full path", () => {
+    expect(normalizeTracesEndpoint("https://otlp.example.com/otlp/v1/traces/"))
+      .toBe("https://otlp.example.com/otlp/v1/traces");
+  });
+});
+
+describe("createWorkersExporter — endpoint normalization", () => {
+  it("POSTs to a normalized URL when the endpoint omits /v1/traces", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otlp.example.com/otlp",
+    });
+
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+    await exporter.flush();
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://otlp.example.com/otlp/v1/traces");
+  });
+
+  it("leaves an already-normalized endpoint unchanged", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otlp.example.com/otlp/v1/traces",
+    });
+
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+    await exporter.flush();
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://otlp.example.com/otlp/v1/traces");
+  });
+});
 
 describe("createWorkersExporter", () => {
   it("should buffer and flush spans via fetch", async () => {
