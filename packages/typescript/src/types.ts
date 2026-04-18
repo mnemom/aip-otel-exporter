@@ -266,6 +266,27 @@ export interface ReclassificationInput {
   score_after?: number;
 }
 
+// --- Generic span input ---
+
+/**
+ * Input for {@link WorkersOTelExporter.recordSpan} — emits an arbitrary
+ * INTERNAL span for telemetry outside the AIP/AAP/CLPI domains.
+ *
+ * Intended for callers that need to emit counters/events through the same
+ * OTLP pipeline (e.g. auth events, rate-limit decisions) without rounding
+ * them into an AIP-shaped primitive.
+ */
+export interface SpanInput {
+  /** Span name. Aggregated on in backends — pick a stable, low-cardinality string. */
+  name: string;
+  /** Span attributes. Values of undefined/null are dropped. Keep cardinality bounded. */
+  attributes?: Record<string, unknown>;
+  /** Span events (zero-duration child occurrences), each with their own attributes. */
+  events?: Array<{ name: string; attributes: Record<string, unknown> }>;
+  /** Span status. Defaults to `"ok"`. */
+  status?: "ok" | "error" | "unset";
+}
+
 // --- Recorder interface ---
 
 /** Public interface for the AIP OTel Recorder. */
@@ -298,6 +319,12 @@ export interface WorkersOTelExporter {
   recordReclassification(input: ReclassificationInput): void;
   /** Record a CLPI policy evaluation (builds internal span). */
   recordPolicyEvaluation(input: PolicyEvaluationInput): void;
+  /**
+   * Record a generic INTERNAL span. Escape hatch for callers emitting
+   * telemetry outside the AIP/AAP/CLPI domains (e.g. auth events,
+   * rate-limit decisions) — aggregated by `name` in the backend.
+   */
+  recordSpan(input: SpanInput): void;
   /** Flush all buffered spans to the OTLP endpoint. Returns a Promise for ctx.waitUntil(). */
   flush(): Promise<void>;
 }

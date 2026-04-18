@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-17
+
+### Added
+
+- **`WorkersOTelExporter.recordSpan()`** — generic escape hatch for emitting
+  arbitrary INTERNAL spans through the same OTLP pipeline as AIP/AAP/CLPI
+  telemetry. Intended for callers that need to ship counters or events
+  outside the integrity/alignment/policy domains (auth events, rate-limit
+  decisions, custom business metrics) without rounding them into an
+  AIP-shaped primitive.
+- New `SpanInput` type in `types.ts` — `{ name, attributes?, events?, status? }`.
+  Status accepts `"ok"` (default), `"error"`, or `"unset"` and maps to OTLP
+  status codes 1/2/0 respectively.
+- Scope `version` in emitted OTLP payloads bumped to `"0.7.0"`.
+
+### Notes
+
+- Python SDK version unchanged. Workers adapter is TypeScript-only, so
+  `recordSpan` is TS-exclusive and does not require Python parity.
+- The six existing `record*` methods (`recordIntegrityCheck`,
+  `recordVerification`, `recordCoherence`, `recordDrift`,
+  `recordReclassification`, `recordPolicyEvaluation`) are unchanged.
+
 ## [0.4.0] - 2026-02-22
 
 ### Changed
