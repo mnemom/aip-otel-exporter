@@ -27,6 +27,7 @@ import type {
   DriftAlertInput,
   ReclassificationInput,
   PolicyEvaluationInput,
+  SpanInput,
 } from "../types.js";
 
 import {
@@ -445,6 +446,18 @@ export function createWorkersExporter(
   }
 
   // -------------------------------------------------------------------
+  // recordSpan — generic escape hatch for non-AIP/AAP telemetry
+  // -------------------------------------------------------------------
+
+  function recordSpan(input: SpanInput): void {
+    const span = createOTLPSpan(input.name, input.attributes ?? {}, input.events);
+    if (input.status && input.status !== "ok") {
+      span.status = { code: input.status === "error" ? 2 : 0 };
+    }
+    pushSpan(span);
+  }
+
+  // -------------------------------------------------------------------
   // Public interface
   // -------------------------------------------------------------------
 
@@ -455,6 +468,7 @@ export function createWorkersExporter(
     recordDrift,
     recordReclassification,
     recordPolicyEvaluation,
+    recordSpan,
     flush,
   };
 }

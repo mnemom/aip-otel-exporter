@@ -432,7 +432,7 @@ describe("E2E: createAIPOTelRecorder pipeline", () => {
 
     const span = spans()[0];
     expect(span.instrumentationLibrary.name).toBe("@mnemom/aip-otel-exporter");
-    expect(span.instrumentationLibrary.version).toBe("0.6.0");
+    expect(span.instrumentationLibrary.version).toBe("0.7.0");
   });
 });
 
@@ -895,7 +895,7 @@ describe("E2E: Workers exporter OTLP pipeline", () => {
     // Scope
     const scope = body.resourceSpans[0].scopeSpans[0].scope;
     expect(scope.name).toBe("@mnemom/aip-otel-exporter");
-    expect(scope.version).toBe("0.6.0");
+    expect(scope.version).toBe("0.7.0");
 
     // Spans
     const otlpSpans = body.resourceSpans[0].scopeSpans[0].spans;

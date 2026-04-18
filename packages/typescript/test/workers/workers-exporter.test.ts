@@ -225,4 +225,120 @@ describe("createWorkersExporter", () => {
     const spans = body.resourceSpans[0].scopeSpans[0].spans;
     expect(spans).toHaveLength(3);
   });
+
+  describe("recordSpan (generic)", () => {
+    it("should emit a span with the given name and default OK status", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordSpan({ name: "auth.signin.success" });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const spans = body.resourceSpans[0].scopeSpans[0].spans;
+      expect(spans).toHaveLength(1);
+      expect(spans[0].name).toBe("auth.signin.success");
+      expect(spans[0].kind).toBe(1); // INTERNAL
+      expect(spans[0].status).toEqual({ code: 1 }); // OK
+      expect(spans[0].attributes).toEqual([]);
+      expect(spans[0].events).toEqual([]);
+    });
+
+    it("should serialize attributes and drop undefined/null values", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordSpan({
+        name: "auth.signin.failure",
+        attributes: {
+          reason: "bad_credentials",
+          env: "production",
+          retry_count: 3,
+          dropped_undef: undefined,
+          dropped_null: null,
+        },
+      });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const span = body.resourceSpans[0].scopeSpans[0].spans[0];
+      const attrKeys = span.attributes.map((a: { key: string }) => a.key);
+      expect(attrKeys).toEqual(["reason", "env", "retry_count"]);
+    });
+
+    it("should honor error status", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordSpan({
+        name: "auth.cookie.decrypt_failed",
+        status: "error",
+      });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const span = body.resourceSpans[0].scopeSpans[0].spans[0];
+      expect(span.status).toEqual({ code: 2 }); // ERROR
+    });
+
+    it("should honor unset status", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordSpan({ name: "auth.event.raw", status: "unset" });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const span = body.resourceSpans[0].scopeSpans[0].spans[0];
+      expect(span.status).toEqual({ code: 0 }); // UNSET
+    });
+
+    it("should serialize events with their own attributes", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordSpan({
+        name: "auth.mfa.challenge",
+        events: [
+          { name: "auth.mfa.factor_selected", attributes: { factor_type: "totp" } },
+        ],
+      });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const span = body.resourceSpans[0].scopeSpans[0].spans[0];
+      expect(span.events).toHaveLength(1);
+      expect(span.events[0].name).toBe("auth.mfa.factor_selected");
+      expect(span.events[0].attributes).toEqual([
+        { key: "factor_type", value: { stringValue: "totp" } },
+      ]);
+    });
+
+    it("should interoperate with the AIP record* methods in one flush", async () => {
+      const exporter = createWorkersExporter({
+        endpoint: "https://otel.example.com/v1/traces",
+      });
+
+      exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+      exporter.recordSpan({
+        name: "auth.legacy_bearer_from_browser",
+        attributes: { env: "production", path_class: "/v1/auth/me" },
+      });
+      await exporter.flush();
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      const spans = body.resourceSpans[0].scopeSpans[0].spans;
+      expect(spans).toHaveLength(2);
+      const names = spans.map((s: { name: string }) => s.name).sort();
+      expect(names).toEqual([
+        "aip.integrity_check",
+        "auth.legacy_bearer_from_browser",
+      ]);
+    });
+  });
 });
