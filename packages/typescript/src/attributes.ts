@@ -168,3 +168,22 @@ export const METRIC_AAP_VIOLATIONS_TOTAL = "aap.violations.total";
 export const METRIC_AAP_VERIFICATION_DURATION =
   "aap.verification.duration_ms";
 export const METRIC_AAP_COHERENCE_SCORE = "aap.coherence.score";
+
+// --- Safe House Sideband Detection (T1-3.1 Piece 6 — ADR-040 + ADR-045 + ADR-047) ---
+//
+// Sideband sources are observer-side cron-driven detector firings that cross
+// to runtime via pending_advisories. The four ratified sources are
+// sideband.coherence, sideband.fault_line, sideband.fleet, and sideband.drift.
+// Future axes extend additively per ADR-047 §1.
+
+export const SAFE_HOUSE_SIDEBAND_SOURCE = "safe_house.sideband.source";
+export const SAFE_HOUSE_SIDEBAND_AXIS = "safe_house.sideband.axis";
+export const SAFE_HOUSE_SIDEBAND_TEAM_ID = "safe_house.sideband.team_id";
+export const SAFE_HOUSE_SIDEBAND_FINDING_COUNT = "safe_house.sideband.finding_count";
+export const SAFE_HOUSE_SIDEBAND_SEVERITY = "safe_house.sideband.severity";
+export const SAFE_HOUSE_SIDEBAND_PATTERN_TYPE = "safe_house.sideband.pattern_type";
+
+export const SPAN_SAFE_HOUSE_SIDEBAND_FINDING = "safe_house.sideband.finding";
+export const EVENT_SAFE_HOUSE_SIDEBAND_FINDING = "safe_house.sideband.finding";
+export const METRIC_SAFE_HOUSE_SIDEBAND_FINDINGS_TOTAL =
+  "safe_house.sideband.findings.total";
