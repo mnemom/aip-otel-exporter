@@ -111,6 +111,11 @@ export { recordCoherence } from "./manual/record-coherence.js";
 export { recordDrift } from "./manual/record-drift.js";
 export { recordReclassification } from "./manual/record-reclassification.js";
 export { recordPolicyEvaluation } from "./manual/record-policy-evaluation.js";
+export {
+  recordSidebandFinding,
+  type SidebandFindingInput,
+  type SidebandSeverity,
+} from "./manual/record-sideband-finding.js";
 export { buildSpan } from "./manual/span-builder.js";
 
 // Re-export metrics
