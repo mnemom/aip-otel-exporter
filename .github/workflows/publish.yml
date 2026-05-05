@@ -1,16 +1,28 @@
 name: Publish
 
-# Thin caller for the canonical npm publish recipe — see ADR-020.
+# Canonical npm publish path for @mnemom/aip-otel-exporter (typescript only).
 # All Node version, registry-url, OIDC, provenance, and SBOM logic lives in
-# mnemom/.github/.github/workflows/npm-publish.yml. To change the recipe,
-# edit the canonical workflow there; do not re-add steps inline here.
+# mnemom/.github/.github/workflows/npm-publish.yml (ADR-020). To change the
+# recipe, edit the canonical workflow there; do not re-add steps inline.
 #
-# This repo publishes a single npm package (@mnemom/aip-otel-exporter) from
-# packages/typescript via the orchestrator dispatch path. No release-event
-# trigger today (cleanup item: consider release-triggered publishing so SBOMs
-# attach to GitHub Releases).
+# Two publish paths, one shared canonical recipe:
+#   - release: cut a GitHub release with tag `v<version>` → validate → test
+#     → publish-npm. The canonical reusable's OIDC subject is the one npm's
+#     Trusted Publisher config trusts.
+#   - workflow_dispatch: manual fallback for orchestrator dispatch or local
+#     republishes. Same canonical reusable, no validate/test gate.
+#
+# Why no inline publish on push-to-main: that path was Node 20 + empty
+# NODE_AUTH_TOKEN, which produces a 404 against npm's Trusted Publisher
+# endpoint (npm <11 silently sends an empty bearer token). The canonical
+# reusable uses Node 24 with proper OIDC fallback. See ci.yml comment.
+#
+# PyPI publishing stays in ci.yml — pypa/gh-action-pypi-publish handles OIDC
+# natively and is independent of the npm Node-version issue.
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       dispatch-id:
@@ -26,18 +38,78 @@ on:
 
 permissions: {}
 jobs:
-  publish:
-    # contents: write is over-granted relative to what dispatch-publish does
-    # (the `gh release upload` step in the reusable workflow is gated on
-    # `event_name == 'release'` and never runs here). But GitHub validates
-    # caller permissions against the called workflow's declared permissions
-    # at workflow load time, before any `if:` is evaluated.
+  # ── Release-triggered: validate → test → publish-npm ─────────────────────
+
+  validate:
     permissions:
-      contents: write
-      id-token: write
+      contents: read
+    if: github.event_name == 'release'
+    name: Validate version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Extract tag version
+        id: tag
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Check npm version matches tag
+        run: |
+          NPM_VERSION=$(node -p "require('./packages/typescript/package.json').version")
+          if [ "$NPM_VERSION" != "${{ steps.tag.outputs.version }}" ]; then
+            echo "ERROR: packages/typescript/package.json version ($NPM_VERSION) != tag (${{ steps.tag.outputs.version }})"
+            exit 1
+          fi
+
+  test:
+    permissions:
+      contents: read
+    if: github.event_name == 'release'
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+        with:
+          node-version: "24"
+          cache: "npm"
+      - name: Install
+        run: npm ci
+      - name: Lint + typecheck
+        run: npm run lint --workspace=packages/typescript
+      - name: Test
+        run: npm run test --workspace=packages/typescript
+      - name: Build
+        run: npm run build --workspace=packages/typescript
+
+  publish-npm:
+    needs: [validate, test]
+    if: github.event_name == 'release'
+    permissions:
+      contents: write   # canonical reusable attaches SBOM to the release
+      id-token: write   # OIDC → npm Trusted Publisher
     # mnemom/.github @ scale/step-29-bump-node24-actions merge (ADR-020)
     uses: mnemom/.github/.github/workflows/npm-publish.yml@3b60e34e88113070235f2d55248a3455295be153
     with:
+      npm-directory: packages/typescript
+      tag: latest
+
+  # ── Orchestrator / manual dispatch — same canonical recipe, no gate ──────
+
+  dispatch-publish:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      # contents: write is over-granted relative to what dispatch-publish
+      # does (the SBOM-attach step in the reusable is gated on
+      # `event_name == 'release'` and never runs here). But GitHub validates
+      # caller permissions against the called workflow's declared
+      # permissions at workflow load time, before any `if:` is evaluated.
+      contents: write
+      id-token: write
+    uses: mnemom/.github/.github/workflows/npm-publish.yml@3b60e34e88113070235f2d55248a3455295be153
+    with:
+      # Defensive defaults: GitHub validates `with:` expressions at load
+      # time, before `if:` is evaluated. On a release event the `inputs`
+      # context is empty; the `||` fallback keeps the expression valid on
+      # both event types.
       npm-directory: ${{ inputs.npm-directory || 'packages/typescript' }}
       dispatch-id: ${{ inputs.dispatch-id || '' }}
       tag: latest
