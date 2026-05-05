@@ -97,51 +97,19 @@ jobs:
   # reusable at mnemom/.github npm-publish.yml uses Node 24 + proper OIDC
   # fallback. Cut a GitHub release (e.g. v0.8.0) to fire the new path.
 
-  publish-pypi:
-    name: Publish to PyPI
-    runs-on: ubuntu-latest
-    needs: [python]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: "3.12"
-
-      - name: Install build tools
-        run: pip install build
-
-      - name: Build
-        run: |
-          cd packages/python
-          python -m build
-
-      - name: Check if version exists
-        id: check
-        run: |
-          PKG_VERSION=$(python -c "import tomllib; print(tomllib.load(open('packages/python/pyproject.toml','rb'))['project']['version'])")
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/aip-otel-exporter/${PKG_VERSION}/json")
-          if [ "$STATUS" = "200" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Publish
-        if: steps.check.outputs.exists == 'false'
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
-        with:
-          packages-dir: packages/python/dist/
+  # PyPI publish moved to publish.yml's release-triggered path alongside
+  # publish-npm. Both registries now flow through the same workflow file
+  # with consistent validate → test → publish gates. Cut a `v<version>`
+  # GitHub release to fire both publishes; the `Check if version exists`
+  # step in publish.yml's publish-pypi job preserves the idempotency
+  # behavior that lived inline here. Note: PyPI's Trusted Publisher config
+  # must trust the publish.yml workflow (not ci.yml).
 
   dispatch-deploy:
     permissions:
       contents: read
     name: Trigger Deploy
-    needs: [typescript, python, publish-pypi]
+    needs: [typescript, python]
     if: >-
       always() &&
       github.event_name == 'push' &&

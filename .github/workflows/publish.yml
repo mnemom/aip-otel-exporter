@@ -1,24 +1,24 @@
 name: Publish
 
-# Canonical npm publish path for @mnemom/aip-otel-exporter (typescript only).
-# All Node version, registry-url, OIDC, provenance, and SBOM logic lives in
-# mnemom/.github/.github/workflows/npm-publish.yml (ADR-020). To change the
-# recipe, edit the canonical workflow there; do not re-add steps inline.
+# Canonical publish path for @mnemom/aip-otel-exporter — both npm and PyPI.
+# All npm Node version, registry-url, OIDC, provenance, and SBOM logic lives
+# in mnemom/.github/.github/workflows/npm-publish.yml (ADR-020). To change
+# the npm recipe, edit the canonical workflow there. PyPI publishing uses
+# pypa/gh-action-pypi-publish with OIDC trusted publishing — handled inline
+# since there's no canonical PyPI reusable today.
 #
-# Two publish paths, one shared canonical recipe:
+# Two trigger paths, one consolidated job graph:
 #   - release: cut a GitHub release with tag `v<version>` → validate → test
-#     → publish-npm. The canonical reusable's OIDC subject is the one npm's
-#     Trusted Publisher config trusts.
+#     → (publish-npm + publish-pypi). Both registries' Trusted Publisher
+#     configs must trust the publish.yml workflow.
 #   - workflow_dispatch: manual fallback for orchestrator dispatch or local
-#     republishes. Same canonical reusable, no validate/test gate.
+#     republishes. Routes through the same canonical npm reusable; PyPI
+#     dispatch is not wired (cut a release for a Python publish).
 #
-# Why no inline publish on push-to-main: that path was Node 20 + empty
-# NODE_AUTH_TOKEN, which produces a 404 against npm's Trusted Publisher
+# Why no inline publish on push-to-main: the previous npm path was Node 20 +
+# empty NODE_AUTH_TOKEN, which produces a 404 against npm's Trusted Publisher
 # endpoint (npm <11 silently sends an empty bearer token). The canonical
-# reusable uses Node 24 with proper OIDC fallback. See ci.yml comment.
-#
-# PyPI publishing stays in ci.yml — pypa/gh-action-pypi-publish handles OIDC
-# natively and is independent of the npm Node-version issue.
+# reusable uses Node 24 with proper OIDC fallback.
 
 on:
   release:
@@ -91,6 +91,40 @@ jobs:
     with:
       npm-directory: packages/typescript
       tag: latest
+
+  publish-pypi:
+    needs: [validate, test]
+    if: github.event_name == 'release'
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC → PyPI Trusted Publisher
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: pip install build
+      - name: Build
+        working-directory: packages/python
+        run: python -m build
+      - name: Check if version exists
+        id: check
+        run: |
+          PKG_VERSION=$(python -c "import tomllib; print(tomllib.load(open('packages/python/pyproject.toml','rb'))['project']['version'])")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/aip-otel-exporter/${PKG_VERSION}/json")
+          if [ "$STATUS" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish
+        if: steps.check.outputs.exists == 'false'
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+        with:
+          packages-dir: packages/python/dist/
 
   # ── Orchestrator / manual dispatch — same canonical recipe, no gate ──────
 
