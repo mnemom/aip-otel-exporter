@@ -119,6 +119,12 @@ export interface IntegritySignalInput {
   recommended_action?: string;
   window_summary?: WindowSummaryInput;
   output_analysis?: OutputAnalysisInput;
+  /**
+   * Distinguishes customer-path emissions from verifier-internal and harness
+   * traffic for per-provider rollups. Defaults to `"customer"` when unset.
+   * See `MNEMOM_SPAN_ROLE` in `attributes.ts` for the load-bearing reason.
+   */
+  role?: "customer" | "verifier" | "harness";
 }
 
 // --- Duck-typed AAP inputs ---
@@ -240,6 +246,19 @@ export interface PolicyEvaluationInput {
   duration_ms?: number;
   enforcement_mode?: string;
   violations?: PolicyViolationInput[];
+  /**
+   * Upstream provider whose request CLPI is evaluating (anthropic / openai /
+   * gemini). Emitted as `gen_ai.system` per OTel SemConv. Optional; required
+   * for per-provider SLI-P2 rollups.
+   */
+  upstream_provider?: string;
+  /** Upstream model id (e.g. `claude-opus-4-7`). Emitted as `gen_ai.request.model`. */
+  upstream_model?: string;
+  /**
+   * Span role — see `IntegritySignalInput.role`. Defaults to `"customer"`
+   * when unset.
+   */
+  role?: "customer" | "verifier" | "harness";
 }
 
 // --- Output Analysis fields (added to IntegritySignalInput) ---

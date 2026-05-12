@@ -56,6 +56,34 @@ export const AIP_WINDOW_DRIFT_ALERT_ACTIVE = "aip.window.drift_alert_active";
 export const GEN_AI_EVALUATION_VERDICT = "gen_ai.evaluation.verdict";
 export const GEN_AI_EVALUATION_SCORE = "gen_ai.evaluation.score";
 
+// --- OTel GenAI SemConv: upstream provider attribution ---
+//
+// Identifies the upstream LLM provider whose response this span's data
+// originated from (anthropic / openai / gemini). Follows OTel SemConv GenAI:
+// https://opentelemetry.io/docs/specs/semconv/gen-ai/
+//
+// Distinguished from AIP_INTEGRITY_ANALYSIS_MODEL: that names the *verifier*
+// model (Haiku 4.5 in Mnemom's case); GEN_AI_REQUEST_MODEL names the
+// customer's *upstream* model that produced the response being analyzed.
+// Together they enable per-provider rollups for SLI-P1 / P2 / P3 (see
+// safe-house-hardening/slos.md §"Provider-specific").
+
+export const GEN_AI_SYSTEM = "gen_ai.system";
+export const GEN_AI_REQUEST_MODEL = "gen_ai.request.model";
+
+// --- Mnemom span role ---
+//
+// Distinguishes customer-path emissions from verifier-internal and harness
+// traffic. Critical for honest per-provider rollups — the AIP verifier
+// (Haiku 4.5) emits aip.integrity_check spans too, but those spans tag the
+// customer's upstream provider on GEN_AI_SYSTEM, not the verifier's. Filter
+// on `mnemom.span.role = 'customer'` to keep verifier-internal and harness-
+// generated traffic out of per-provider customer SLOs.
+//
+// Values: "customer" (default), "verifier", "harness".
+
+export const MNEMOM_SPAN_ROLE = "mnemom.span.role";
+
 // --- AAP Verification Attributes ---
 
 export const AAP_VERIFICATION_RESULT = "aap.verification.result";
