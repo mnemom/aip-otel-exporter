@@ -22,6 +22,10 @@ import {
   POLICY_CONTEXT,
   POLICY_DURATION_MS,
   POLICY_ENFORCEMENT_MODE,
+  // OTel GenAI SemConv: upstream provider attribution + Mnemom span role
+  GEN_AI_SYSTEM,
+  GEN_AI_REQUEST_MODEL,
+  MNEMOM_SPAN_ROLE,
 } from "../attributes.js";
 
 import { buildSpan } from "./span-builder.js";
@@ -45,6 +49,16 @@ export function recordPolicyEvaluation(
     [POLICY_CONTEXT]: input?.context,
     [POLICY_DURATION_MS]: input?.duration_ms,
     [POLICY_ENFORCEMENT_MODE]: input?.enforcement_mode,
+
+    // OTel GenAI SemConv — upstream provider attribution for per-provider
+    // SLI-P2 rollups. Reads from caller-supplied fields; the gateway is the
+    // canonical caller and threads its routing context through.
+    [GEN_AI_SYSTEM]: input?.upstream_provider,
+    [GEN_AI_REQUEST_MODEL]: input?.upstream_model,
+
+    // Span role — defaults to "customer" when unset, mirroring
+    // recordIntegrityCheck. Verifier-internal and harness paths set explicitly.
+    [MNEMOM_SPAN_ROLE]: input?.role ?? "customer",
   };
 
   const events: Array<{ name: string; attributes: Attributes }> = [];

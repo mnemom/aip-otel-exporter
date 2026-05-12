@@ -139,6 +139,50 @@ describe("recordIntegrityCheck", () => {
     expect(a[attr.GEN_AI_EVALUATION_SCORE]).toBe(0.8);
   });
 
+  it("should set gen_ai.system + gen_ai.request.model when checkpoint carries provider/model", () => {
+    const tracer = provider.getTracer("test");
+    const signal: IntegritySignalInput = {
+      ...FIXTURE_SIGNAL,
+      checkpoint: {
+        ...FIXTURE_SIGNAL.checkpoint,
+        provider: "anthropic",
+        model: "claude-opus-4-7",
+      },
+    };
+    recordIntegrityCheck(tracer, signal);
+
+    const a = getFinishedSpans()[0].attributes;
+    expect(a[attr.GEN_AI_SYSTEM]).toBe("anthropic");
+    expect(a[attr.GEN_AI_REQUEST_MODEL]).toBe("claude-opus-4-7");
+  });
+
+  it("should default mnemom.span.role to 'customer' when signal omits role", () => {
+    const tracer = provider.getTracer("test");
+    recordIntegrityCheck(tracer, FIXTURE_SIGNAL);
+
+    const a = getFinishedSpans()[0].attributes;
+    expect(a[attr.MNEMOM_SPAN_ROLE]).toBe("customer");
+  });
+
+  it("should honor explicit role values for verifier and harness paths", () => {
+    const tracer = provider.getTracer("test");
+    recordIntegrityCheck(tracer, { ...FIXTURE_SIGNAL, role: "verifier" });
+    recordIntegrityCheck(tracer, { ...FIXTURE_SIGNAL, role: "harness" });
+
+    const spans = getFinishedSpans();
+    expect(spans[0].attributes[attr.MNEMOM_SPAN_ROLE]).toBe("verifier");
+    expect(spans[1].attributes[attr.MNEMOM_SPAN_ROLE]).toBe("harness");
+  });
+
+  it("should leave gen_ai.system / gen_ai.request.model unset when checkpoint omits provider/model", () => {
+    const tracer = provider.getTracer("test");
+    recordIntegrityCheck(tracer, FIXTURE_SIGNAL);
+
+    const a = getFinishedSpans()[0].attributes;
+    expect(a[attr.GEN_AI_SYSTEM]).toBeUndefined();
+    expect(a[attr.GEN_AI_REQUEST_MODEL]).toBeUndefined();
+  });
+
   it("should add concern events", () => {
     const tracer = provider.getTracer("test");
     recordIntegrityCheck(tracer, FIXTURE_SIGNAL);

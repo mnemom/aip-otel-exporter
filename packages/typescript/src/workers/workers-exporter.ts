@@ -80,6 +80,11 @@ import {
   GEN_AI_EVALUATION_VERDICT,
   GEN_AI_EVALUATION_SCORE,
 
+  // OTel GenAI SemConv: upstream provider attribution + Mnemom span role
+  GEN_AI_SYSTEM,
+  GEN_AI_REQUEST_MODEL,
+  MNEMOM_SPAN_ROLE,
+
   // AAP Verification attributes
   AAP_VERIFICATION_RESULT,
   AAP_VERIFICATION_SIMILARITY_SCORE,
@@ -293,6 +298,15 @@ export function createWorkersExporter(
       // GenAI SIG forward-compat aliases
       [GEN_AI_EVALUATION_VERDICT]: cp?.verdict,
       [GEN_AI_EVALUATION_SCORE]: win?.integrity_ratio,
+
+      // OTel GenAI SemConv — upstream provider attribution. Mirrors the
+      // manual recorder (record-integrity-check.ts) so SDK ↔ Workers parity
+      // (asserted by test/e2e.test.ts) holds across both paths.
+      [GEN_AI_SYSTEM]: cp?.provider,
+      [GEN_AI_REQUEST_MODEL]: cp?.model,
+
+      // Span role — defaults to "customer" when the signal omits it.
+      [MNEMOM_SPAN_ROLE]: signal?.role ?? "customer",
     };
 
     const events: Array<{ name: string; attributes: Record<string, unknown> }> =
@@ -432,6 +446,14 @@ export function createWorkersExporter(
       [POLICY_CONTEXT]: input?.context,
       [POLICY_DURATION_MS]: input?.duration_ms,
       [POLICY_ENFORCEMENT_MODE]: input?.enforcement_mode,
+
+      // OTel GenAI SemConv — upstream provider attribution. Mirrors the
+      // manual recorder so SDK ↔ Workers parity holds.
+      [GEN_AI_SYSTEM]: input?.upstream_provider,
+      [GEN_AI_REQUEST_MODEL]: input?.upstream_model,
+
+      // Span role — defaults to "customer" when input omits it.
+      [MNEMOM_SPAN_ROLE]: input?.role ?? "customer",
     };
 
     const events: Array<{ name: string; attributes: Record<string, unknown> }> =

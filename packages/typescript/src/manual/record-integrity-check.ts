@@ -64,6 +64,11 @@ import {
   // GenAI forward-compat aliases
   GEN_AI_EVALUATION_VERDICT,
   GEN_AI_EVALUATION_SCORE,
+
+  // OTel GenAI SemConv: upstream provider attribution + Mnemom span role
+  GEN_AI_SYSTEM,
+  GEN_AI_REQUEST_MODEL,
+  MNEMOM_SPAN_ROLE,
 } from "../attributes.js";
 
 import { buildSpan } from "./span-builder.js";
@@ -137,6 +142,17 @@ export function recordIntegrityCheck(
     // GenAI SIG forward-compat aliases
     [GEN_AI_EVALUATION_VERDICT]: cp?.verdict,
     [GEN_AI_EVALUATION_SCORE]: win?.integrity_ratio,
+
+    // OTel GenAI SemConv — upstream provider attribution. Reads from the
+    // checkpoint's provider/model fields (set by the gateway before recording).
+    // Distinct from AIP_INTEGRITY_ANALYSIS_MODEL which names the *verifier*.
+    [GEN_AI_SYSTEM]: cp?.provider,
+    [GEN_AI_REQUEST_MODEL]: cp?.model,
+
+    // Span role disambiguates customer-path from verifier-internal and harness
+    // emissions. Defaults to "customer" when the signal omits it — preserves
+    // honest per-provider customer SLO denominators by construction.
+    [MNEMOM_SPAN_ROLE]: signal?.role ?? "customer",
   };
 
   // --- Events ---
