@@ -8,5 +8,8 @@
     "build": "npm run build --workspace=packages/typescript",
     "test": "npm run test --workspace=packages/typescript",
     "lint": "npm run lint --workspace=packages/typescript"
+  },
+  "overrides": {
+    "vite": "^7.3.2"
   }
 }
