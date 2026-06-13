@@ -1,6 +1,6 @@
 {
   "name": "@mnemom/aip-otel-exporter",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "OpenTelemetry exporter for AIP integrity checkpoints and AAP verification results",
   "type": "module",
   "main": "./dist/index.js",

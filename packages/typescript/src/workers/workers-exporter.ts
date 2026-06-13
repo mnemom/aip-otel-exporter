@@ -501,7 +501,12 @@ export function createWorkersExporter(
   // -------------------------------------------------------------------
 
   function recordSpan(input: SpanInput): void {
-    const span = createOTLPSpan(input.name, input.attributes ?? {}, input.events);
+    const span = createOTLPSpan(
+      input.name,
+      input.attributes ?? {},
+      input.events,
+      input.durationMs,
+    );
     if (input.status && input.status !== "ok") {
       span.status = { code: input.status === "error" ? 2 : 0 };
     }
