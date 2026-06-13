@@ -304,6 +304,18 @@ export interface SpanInput {
   events?: Array<{ name: string; attributes: Record<string, unknown> }>;
   /** Span status. Defaults to `"ok"`. */
   status?: "ok" | "error" | "unset";
+  /**
+   * Real operation duration in milliseconds. `recordSpan` is otherwise a
+   * one-shot emission (start == end => 0 wall-time), which makes the
+   * metrics-generator's latency histogram (`traces_spanmetrics_latency_*`)
+   * degenerate ~0 for the span. Set `durationMs` to the measured duration so
+   * the span carries `startTimeUnixNano = end - durationMs` and spanmetrics
+   * records a REAL latency histogram — required for any percentile/latency SLO
+   * built on this span. Omit it for pure counter/availability spans (where only
+   * `status_code` / attribute ratios matter). Non-positive / non-finite values
+   * fall back to the one-shot behavior.
+   */
+  durationMs?: number;
 }
 
 // --- Recorder interface ---

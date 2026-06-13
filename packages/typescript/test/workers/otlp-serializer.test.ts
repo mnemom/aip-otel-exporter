@@ -178,6 +178,25 @@ describe("createOTLPSpan", () => {
     expect(BigInt(span.startTimeUnixNano)).toBeGreaterThan(0n);
   });
 
+  it("is one-shot (start == end) when no durationMs is given", () => {
+    const span = createOTLPSpan("test.span", {});
+    expect(span.startTimeUnixNano).toBe(span.endTimeUnixNano);
+  });
+
+  it("backdates startTimeUnixNano by durationMs so spanmetrics records a real latency", () => {
+    const durationMs = 1500;
+    const span = createOTLPSpan("test.span", {}, undefined, durationMs);
+    const deltaNanos = BigInt(span.endTimeUnixNano) - BigInt(span.startTimeUnixNano);
+    expect(deltaNanos).toBe(BigInt(durationMs) * 1_000_000n);
+  });
+
+  it("falls back to one-shot for non-positive / non-finite durationMs", () => {
+    for (const bad of [0, -5, Number.NaN, Infinity]) {
+      const span = createOTLPSpan("test.span", {}, undefined, bad);
+      expect(span.startTimeUnixNano).toBe(span.endTimeUnixNano);
+    }
+  });
+
   it("should include attributes", () => {
     const span = createOTLPSpan("test.span", {
       key: "value",

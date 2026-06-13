@@ -158,8 +158,21 @@ export function createOTLPSpan(
   name: string,
   attributes: Record<string, unknown>,
   events?: Array<{ name: string; attributes: Record<string, unknown> }>,
+  durationMs?: number,
 ): OTLPSpan {
-  const now = String(Date.now() * 1_000_000);
+  const endMs = Date.now();
+  const now = String(endMs * 1_000_000);
+
+  // A bare emission is one-shot (start == end => 0 wall-time), so the
+  // metrics-generator's latency histogram records a degenerate ~0 for the span.
+  // When the caller knows the real operation duration it passes `durationMs`:
+  // we set startTimeUnixNano = end - durationMs so spanmetrics records a REAL
+  // latency histogram (the same pattern the prover uses in `_build_otlp_span`).
+  // A non-positive / non-finite duration falls back to the one-shot behavior.
+  const startTimeUnixNano =
+    typeof durationMs === "number" && Number.isFinite(durationMs) && durationMs > 0
+      ? String(Math.round((endMs - durationMs) * 1_000_000))
+      : now;
 
   const otlpEvents: OTLPEvent[] = [];
   if (events) {
@@ -177,7 +190,7 @@ export function createOTLPSpan(
     spanId: generateSpanId(),
     name,
     kind: 1, // INTERNAL
-    startTimeUnixNano: now,
+    startTimeUnixNano,
     endTimeUnixNano: now,
     attributes: toOTLPAttributes(attributes),
     events: otlpEvents,
