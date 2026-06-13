@@ -158,7 +158,7 @@ export function createOTLPSpan(
   name: string,
   attributes: Record<string, unknown>,
   events?: Array<{ name: string; attributes: Record<string, unknown> }>,
-  durationMs?: number,
+  durationMs?: number | null,
 ): OTLPSpan {
   const endMs = Date.now();
   const now = String(endMs * 1_000_000);
