@@ -115,6 +115,37 @@ describe("createWorkersExporter", () => {
     expect(spans[0].name).toBe("aip.integrity_check");
   });
 
+  it("backdates the integrity-check span by analysis_duration_ms (real latency histogram)", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otel.example.com/v1/traces",
+    });
+    const durationMs = 420;
+    exporter.recordIntegrityCheck({
+      ...FIXTURE_SIGNAL,
+      checkpoint: {
+        ...FIXTURE_SIGNAL.checkpoint,
+        analysis_metadata: { analysis_duration_ms: durationMs },
+      },
+    });
+    await exporter.flush();
+
+    const span = JSON.parse(fetchMock.mock.calls[0][1].body)
+      .resourceSpans[0].scopeSpans[0].spans[0];
+    const deltaNanos = BigInt(span.endTimeUnixNano) - BigInt(span.startTimeUnixNano);
+    expect(deltaNanos).toBe(BigInt(durationMs) * 1_000_000n);
+  });
+
+  it("integrity-check span is one-shot when analysis_duration_ms is absent", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otel.example.com/v1/traces",
+    });
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL); // no analysis_metadata
+    await exporter.flush();
+    const span = JSON.parse(fetchMock.mock.calls[0][1].body)
+      .resourceSpans[0].scopeSpans[0].spans[0];
+    expect(span.startTimeUnixNano).toBe(span.endTimeUnixNano);
+  });
+
   it("should include authorization header when configured", async () => {
     const exporter = createWorkersExporter({
       endpoint: "https://otel.example.com/v1/traces",

@@ -334,7 +334,13 @@ export function createWorkersExporter(
       });
     }
 
-    pushSpan(createOTLPSpan(SPAN_AIP_INTEGRITY_CHECK, attributes, events));
+    // Pass the analysis duration so spanmetrics records a REAL latency histogram
+    // for `aip.integrity_check` (SLI-2 / SLI-G3 AIP added-latency SLOs). Without
+    // it the span is one-shot (~0) and the duration lives only in the
+    // analysis_duration_ms attribute (Tempo-only). See exporter 0.10.0/0.11.0.
+    pushSpan(
+      createOTLPSpan(SPAN_AIP_INTEGRITY_CHECK, attributes, events, meta?.analysis_duration_ms),
+    );
   }
 
   // -------------------------------------------------------------------
@@ -371,7 +377,8 @@ export function createWorkersExporter(
       }
     }
 
-    pushSpan(createOTLPSpan(SPAN_AAP_VERIFY_TRACE, attributes, events));
+    // Real verification duration → real latency histogram (see integrity-check).
+    pushSpan(createOTLPSpan(SPAN_AAP_VERIFY_TRACE, attributes, events, meta?.duration_ms));
   }
 
   // -------------------------------------------------------------------
@@ -474,7 +481,9 @@ export function createWorkersExporter(
       }
     }
 
-    pushSpan(createOTLPSpan(SPAN_POLICY_EVALUATE, attributes, events));
+    // Real policy-eval duration → real latency histogram for `policy.evaluate`
+    // (CLPI policy-evaluation-overhead SLO). See integrity-check.
+    pushSpan(createOTLPSpan(SPAN_POLICY_EVALUATE, attributes, events, input?.duration_ms));
   }
 
   // -------------------------------------------------------------------
