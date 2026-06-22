@@ -29,6 +29,17 @@ export interface WorkersExporterConfig {
   headers?: Record<string, string>;
   /** Service name for the resource. Defaults to "aip-otel-exporter". */
   serviceName?: string;
+  /**
+   * Deployment environment (e.g. "production" / "staging"). Stamped on the
+   * OTLP **resource** as both `deployment.environment` (OTel SemConv) and a
+   * bare `env` attribute — the latter is what the Tempo metrics-generator
+   * promotes to the `env` Prometheus label on `traces_spanmetrics_*`, which
+   * the golden-signals dashboards default-filter to `env="production"`
+   * (MNE-720 / MNE-765). Omit (or pass `"unknown"`) and no env label is
+   * implied — never a false `"production"`. Applies to ALL spans this
+   * exporter emits (recordIntegrityCheck, recordSpan, …) in one place.
+   */
+  env?: string;
   /** Maximum batch size before auto-flush. Defaults to 100. */
   maxBatchSize?: number;
 }
