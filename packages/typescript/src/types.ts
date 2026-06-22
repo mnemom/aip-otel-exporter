@@ -40,6 +40,17 @@ export interface WorkersExporterConfig {
    * exporter emits (recordIntegrityCheck, recordSpan, …) in one place.
    */
   env?: string;
+  /**
+   * Cell identifier (e.g. "us-1") for the Cell Architecture sharding model.
+   * Stamped on the OTLP **resource** as a bare `cell_id` attribute when a
+   * non-empty value is supplied — snake_case, low-cardinality enum (a small,
+   * fixed set of cells), mirroring the MNE-765 `env` resource pattern.
+   * Carries onto ALL spans this exporter emits, including the typed AIP/AAP
+   * integrity-check spans that the gateway/observer/api `recordSpan` seam
+   * cannot reach (full-coverage follow-up for MNE-892 / Cell Architecture
+   * Phase 1 §05 WS-C, C2). Omit and no `cell_id` attribute is added.
+   */
+  cell_id?: string;
   /** Maximum batch size before auto-flush. Defaults to 100. */
   maxBatchSize?: number;
 }

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`cell_id` resource option on `createWorkersExporter`** (Cell Architecture
+  Phase 1, full-coverage follow-up for MNE-892). When set, stamps a bare
+  `cell_id` resource attribute (snake_case, low-cardinality) onto every span
+  the exporter emits — including the typed AIP/AAP integrity-check spans that
+  the gateway/observer/api `recordSpan` seam cannot reach. Mirrors the MNE-765
+  `env` resource pattern: optional, additive, backward-compatible — omit it
+  and no attribute is added. Blank/whitespace values are treated as unset.
+  TypeScript package version bumped to `0.13.0`.
+
 ## [0.7.1] - 2026-04-18
 
 ### Fixed

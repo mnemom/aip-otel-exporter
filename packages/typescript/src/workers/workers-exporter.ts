@@ -189,6 +189,10 @@ export function createWorkersExporter(
   // Resource-level deployment env (MNE-720 / MNE-765). Treat empty/whitespace
   // as unset so a blank secret never stamps a hollow label.
   const env = config.env?.trim() || undefined;
+  // Resource-level cell id (MNE-892 full-coverage follow-up). Same
+  // empty/whitespace-as-unset treatment so a blank value never stamps a
+  // hollow `cell_id` label.
+  const cellId = config.cell_id?.trim() || undefined;
   const maxBatchSize = config.maxBatchSize ?? 100;
 
   let buffer: OTLPSpan[] = [];
@@ -217,7 +221,7 @@ export function createWorkersExporter(
     const spans = buffer;
     buffer = [];
 
-    const body = serializeExportPayload(spans, serviceName, env);
+    const body = serializeExportPayload(spans, serviceName, env, cellId);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
