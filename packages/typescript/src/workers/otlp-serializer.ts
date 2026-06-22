@@ -209,12 +209,25 @@ export function createOTLPSpan(
 export function serializeExportPayload(
   spans: OTLPSpan[],
   serviceName: string,
+  env?: string,
 ): string {
+  // Resource attributes. `env` is added (as both the OTel-SemConv
+  // `deployment.environment` and the bare `env` key the Tempo
+  // metrics-generator promotes to the `env` spanmetrics label) only when a
+  // non-empty value is supplied — an unset/empty env emits no label rather
+  // than a false default (MNE-720 / MNE-765).
+  const resourceAttributes: Record<string, unknown> = {
+    "service.name": serviceName,
+  };
+  if (env) {
+    resourceAttributes["deployment.environment"] = env;
+    resourceAttributes["env"] = env;
+  }
   const payload: OTLPExportPayload = {
     resourceSpans: [
       {
         resource: {
-          attributes: toOTLPAttributes({ "service.name": serviceName }),
+          attributes: toOTLPAttributes(resourceAttributes),
         },
         scopeSpans: [
           {

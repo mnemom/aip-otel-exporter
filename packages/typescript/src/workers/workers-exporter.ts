@@ -186,6 +186,9 @@ export function createWorkersExporter(
 
   const endpoint = normalizeTracesEndpoint(config.endpoint);
   const serviceName = config.serviceName ?? "aip-otel-exporter";
+  // Resource-level deployment env (MNE-720 / MNE-765). Treat empty/whitespace
+  // as unset so a blank secret never stamps a hollow label.
+  const env = config.env?.trim() || undefined;
   const maxBatchSize = config.maxBatchSize ?? 100;
 
   let buffer: OTLPSpan[] = [];
@@ -214,7 +217,7 @@ export function createWorkersExporter(
     const spans = buffer;
     buffer = [];
 
-    const body = serializeExportPayload(spans, serviceName);
+    const body = serializeExportPayload(spans, serviceName, env);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

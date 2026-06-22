@@ -291,4 +291,35 @@ describe("serializeExportPayload", () => {
     const json = serializeExportPayload([span], "svc");
     expect(() => JSON.parse(json)).not.toThrow();
   });
+
+  // MNE-720 / MNE-765 — env resource attribute.
+  it("stamps env on the resource (deployment.environment + env) when provided", () => {
+    const span = createOTLPSpan("test", {});
+    const parsed = JSON.parse(
+      serializeExportPayload([span], "my-service", "production"),
+    );
+    const attrs = parsed.resourceSpans[0].resource.attributes;
+    expect(attrs).toContainEqual({
+      key: "service.name",
+      value: { stringValue: "my-service" },
+    });
+    expect(attrs).toContainEqual({
+      key: "deployment.environment",
+      value: { stringValue: "production" },
+    });
+    // The bare `env` key is what Tempo promotes to the `env` spanmetrics label.
+    expect(attrs).toContainEqual({
+      key: "env",
+      value: { stringValue: "production" },
+    });
+  });
+
+  it("omits env from the resource when not provided (no false default)", () => {
+    const span = createOTLPSpan("test", {});
+    const parsed = JSON.parse(serializeExportPayload([span], "my-service"));
+    const keys = parsed.resourceSpans[0].resource.attributes.map(
+      (a: { key: string }) => a.key,
+    );
+    expect(keys).toEqual(["service.name"]);
+  });
 });
