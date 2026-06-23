@@ -322,4 +322,55 @@ describe("serializeExportPayload", () => {
     );
     expect(keys).toEqual(["service.name"]);
   });
+
+  // MNE-892 (full-coverage follow-up) — cell_id resource attribute.
+  it("stamps cell_id on the resource when provided", () => {
+    const span = createOTLPSpan("test", {});
+    const parsed = JSON.parse(
+      // env omitted, cell_id supplied.
+      serializeExportPayload([span], "my-service", undefined, "us-1"),
+    );
+    const attrs = parsed.resourceSpans[0].resource.attributes;
+    expect(attrs).toContainEqual({
+      key: "service.name",
+      value: { stringValue: "my-service" },
+    });
+    expect(attrs).toContainEqual({
+      key: "cell_id",
+      value: { stringValue: "us-1" },
+    });
+    // env was not supplied, so no env labels are implied.
+    const keys = attrs.map((a: { key: string }) => a.key);
+    expect(keys).not.toContain("env");
+    expect(keys).not.toContain("deployment.environment");
+  });
+
+  it("omits cell_id from the resource when not provided (no false default)", () => {
+    const span = createOTLPSpan("test", {});
+    const parsed = JSON.parse(serializeExportPayload([span], "my-service"));
+    const keys = parsed.resourceSpans[0].resource.attributes.map(
+      (a: { key: string }) => a.key,
+    );
+    expect(keys).not.toContain("cell_id");
+  });
+
+  it("stamps both env and cell_id when both are provided", () => {
+    const span = createOTLPSpan("test", {});
+    const parsed = JSON.parse(
+      serializeExportPayload([span], "my-service", "production", "us-1"),
+    );
+    const attrs = parsed.resourceSpans[0].resource.attributes;
+    expect(attrs).toContainEqual({
+      key: "deployment.environment",
+      value: { stringValue: "production" },
+    });
+    expect(attrs).toContainEqual({
+      key: "env",
+      value: { stringValue: "production" },
+    });
+    expect(attrs).toContainEqual({
+      key: "cell_id",
+      value: { stringValue: "us-1" },
+    });
+  });
 });

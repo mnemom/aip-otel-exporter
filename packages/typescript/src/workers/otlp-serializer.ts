@@ -210,18 +210,25 @@ export function serializeExportPayload(
   spans: OTLPSpan[],
   serviceName: string,
   env?: string,
+  cellId?: string,
 ): string {
   // Resource attributes. `env` is added (as both the OTel-SemConv
   // `deployment.environment` and the bare `env` key the Tempo
   // metrics-generator promotes to the `env` spanmetrics label) only when a
   // non-empty value is supplied — an unset/empty env emits no label rather
-  // than a false default (MNE-720 / MNE-765).
+  // than a false default (MNE-720 / MNE-765). `cell_id` follows the same
+  // pattern for the Cell Architecture sharding model: stamped (snake_case,
+  // low-cardinality) only when supplied so AIP/AAP integrity-check spans also
+  // carry it (full-coverage follow-up for MNE-892).
   const resourceAttributes: Record<string, unknown> = {
     "service.name": serviceName,
   };
   if (env) {
     resourceAttributes["deployment.environment"] = env;
     resourceAttributes["env"] = env;
+  }
+  if (cellId) {
+    resourceAttributes["cell_id"] = cellId;
   }
   const payload: OTLPExportPayload = {
     resourceSpans: [

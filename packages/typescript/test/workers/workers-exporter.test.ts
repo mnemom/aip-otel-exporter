@@ -218,6 +218,57 @@ describe("createWorkersExporter", () => {
     ]);
   });
 
+  // MNE-892 (full-coverage follow-up) — cell_id flows from config onto the
+  // resource of the typed integrity-check span, which the gateway/observer/api
+  // recordSpan seam cannot reach.
+  it("stamps cell_id on the resource of an integrity-check span when configured", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otel.example.com/v1/traces",
+      cell_id: "us-1",
+    });
+
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+    await exporter.flush();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const resourceAttrs = body.resourceSpans[0].resource.attributes;
+    expect(resourceAttrs).toContainEqual({
+      key: "cell_id",
+      value: { stringValue: "us-1" },
+    });
+  });
+
+  it("omits cell_id from the resource when not configured", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otel.example.com/v1/traces",
+    });
+
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+    await exporter.flush();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const keys = body.resourceSpans[0].resource.attributes.map(
+      (a: { key: string }) => a.key,
+    );
+    expect(keys).not.toContain("cell_id");
+  });
+
+  it("treats a blank/whitespace cell_id as unset (no hollow label)", async () => {
+    const exporter = createWorkersExporter({
+      endpoint: "https://otel.example.com/v1/traces",
+      cell_id: "   ",
+    });
+
+    exporter.recordIntegrityCheck(FIXTURE_SIGNAL);
+    await exporter.flush();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const keys = body.resourceSpans[0].resource.attributes.map(
+      (a: { key: string }) => a.key,
+    );
+    expect(keys).not.toContain("cell_id");
+  });
+
   it("should record verification results", async () => {
     const exporter = createWorkersExporter({
       endpoint: "https://otel.example.com/v1/traces",
