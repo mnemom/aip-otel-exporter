@@ -378,6 +378,8 @@ function setupTracing() {
 
 function teardownTracing() {
   contextManager.disable();
+  context.disable();
+  trace.disable();
 }
 
 function spans(): ReadableSpan[] {
