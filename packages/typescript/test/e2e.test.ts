@@ -366,7 +366,14 @@ function setupTracing() {
   tracerProvider = new BasicTracerProvider({
     spanProcessors: [new SimpleSpanProcessor(spanExporter)],
   });
-  tracerProvider.register({ contextManager });
+  // OTel JS SDK 2.x removed `BasicTracerProvider.register()`; it survives only on
+  // the platform providers (`NodeTracerProvider` / `WebTracerProvider`). Register
+  // by hand the two globals that 1.x's `register({ contextManager })` set for us.
+  // We deliberately do NOT install a global propagator: 1.x's register() also
+  // built W3CTraceContext + W3CBaggage propagators from env, but these tests only
+  // exercise in-process parent/child context and never parse wire headers.
+  trace.setGlobalTracerProvider(tracerProvider);
+  context.setGlobalContextManager(contextManager);
 }
 
 function teardownTracing() {
@@ -422,8 +429,8 @@ describe("E2E: createAIPOTelRecorder pipeline", () => {
     recorder.recordIntegrityCheck(CLEAR_SIGNAL);
 
     const span = spans()[0];
-    expect(span.instrumentationLibrary.name).toBe("my-app-tracer");
-    expect(span.instrumentationLibrary.version).toBe("2.0.0");
+    expect(span.instrumentationScope.name).toBe("my-app-tracer");
+    expect(span.instrumentationScope.version).toBe("2.0.0");
   });
 
   it("should default tracer name to @mnemom/aip-otel-exporter", () => {
@@ -431,8 +438,8 @@ describe("E2E: createAIPOTelRecorder pipeline", () => {
     recorder.recordIntegrityCheck(CLEAR_SIGNAL);
 
     const span = spans()[0];
-    expect(span.instrumentationLibrary.name).toBe("@mnemom/aip-otel-exporter");
-    expect(span.instrumentationLibrary.version).toBe("0.7.1");
+    expect(span.instrumentationScope.name).toBe("@mnemom/aip-otel-exporter");
+    expect(span.instrumentationScope.version).toBe("0.7.1");
   });
 });
 
@@ -815,9 +822,9 @@ describe("E2E: Span parent-child context propagation", () => {
     expect(integritySpan.spanContext().traceId).toBe(parent.spanContext().traceId);
     expect(verifySpan.spanContext().traceId).toBe(parent.spanContext().traceId);
 
-    // Both should have the parent's span ID as parentSpanId
-    expect(integritySpan.parentSpanId).toBe(parent.spanContext().spanId);
-    expect(verifySpan.parentSpanId).toBe(parent.spanContext().spanId);
+    // Both should have the parent as parentSpanContext
+    expect(integritySpan.parentSpanContext?.spanId).toBe(parent.spanContext().spanId);
+    expect(verifySpan.parentSpanContext?.spanId).toBe(parent.spanContext().spanId);
   });
 
   it("should create root spans when no parent is active", () => {
@@ -825,8 +832,8 @@ describe("E2E: Span parent-child context propagation", () => {
     recorder.recordIntegrityCheck(CLEAR_SIGNAL);
 
     const s = spans()[0];
-    // No parent — parentSpanId should be undefined or the zero ID
-    expect(s.parentSpanId).toBeFalsy();
+    // No parent — parentSpanContext should be undefined
+    expect(s.parentSpanContext).toBeUndefined();
   });
 
   it("should maintain separate trace IDs for independent recordings", () => {
@@ -1255,22 +1262,22 @@ describe("E2E: Combined traces + metrics agent lifecycle", () => {
     expect(integritySpans).toHaveLength(3);
 
     // First integrity check should be child of turn 1
-    expect(integritySpans[0].parentSpanId).toBe(turn1Span.spanContext().spanId);
+    expect(integritySpans[0].parentSpanContext?.spanId).toBe(turn1Span.spanContext().spanId);
     expect(integritySpans[0].attributes[attr.AIP_INTEGRITY_VERDICT]).toBe("clear");
 
     // Second integrity check should be child of turn 2
     const turn2Span = allSpans.find((s) => s.name === "agent.turn.2")!;
-    expect(integritySpans[1].parentSpanId).toBe(turn2Span.spanContext().spanId);
+    expect(integritySpans[1].parentSpanContext?.spanId).toBe(turn2Span.spanContext().spanId);
     expect(integritySpans[1].attributes[attr.AIP_INTEGRITY_VERDICT]).toBe("review_needed");
 
     // Third integrity check should be child of turn 3
     const turn3Span = allSpans.find((s) => s.name === "agent.turn.3")!;
-    expect(integritySpans[2].parentSpanId).toBe(turn3Span.spanContext().spanId);
+    expect(integritySpans[2].parentSpanContext?.spanId).toBe(turn3Span.spanContext().spanId);
     expect(integritySpans[2].attributes[attr.AIP_INTEGRITY_VERDICT]).toBe("boundary_violation");
 
     // Post-session spans should be root spans
     const verifySpan = spanByName("aap.verify_trace");
-    expect(verifySpan.parentSpanId).toBeFalsy();
+    expect(verifySpan.parentSpanContext).toBeUndefined();
 
     // --- Verify metrics ---
     await metricReader.forceFlush();
