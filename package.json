@@ -10,6 +10,7 @@
     "lint": "npm run lint --workspace=packages/typescript"
   },
   "overrides": {
-    "vite": "^7.3.2"
+    "vite": "^7.3.6",
+    "esbuild": "^0.28.1"
   }
 }
