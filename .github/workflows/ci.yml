@@ -60,10 +60,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Hash-pinned (OpenSSF Scorecard Pinned-Dependencies). python-dev.txt is the
+      # `[dev]` extra compiled for every matrix interpreter; the package itself is then
+      # installed editable with --no-deps so nothing unpinned rides along.
       - name: Install
         run: |
           cd packages/python
-          pip install -e ".[dev]"
+          python -m pip install --require-hashes -r ../../.github/requirements/python-dev.txt
+          python -m pip install --no-deps -e .
 
       - name: Lint
         run: |
