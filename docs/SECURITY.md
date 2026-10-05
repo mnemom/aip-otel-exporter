@@ -17,8 +17,8 @@ and AAP verification results.
 The exporter converts AIP/AAP protocol outputs into OpenTelemetry spans and metrics. Data includes:
 
 - **Integrity verdicts** (clear, review_needed, boundary_violation)
-- **Concern descriptions** (category, severity, description text)
-- **Verification results** (pass/fail, violation details)
+- **Concerns** (category and severity)
+- **Verification results** (pass/fail, violation type and severity)
 - **Coherence scores** (compatibility assessment between agents)
 - **Drift alerts** (behavioral pattern changes over time)
 - **Agent/card/session identifiers**
@@ -29,6 +29,13 @@ The exporter converts AIP/AAP protocol outputs into OpenTelemetry spans and metr
 - **Thinking blocks** — Raw thinking content is never passed to the exporter. Only the
   `thinking_block_hash` (SHA-256) is recorded as a span attribute.
 - **User content** — No user messages or prompts flow through the exporter.
+- **Free text** — Since TypeScript 0.14.0 / Python 0.6.0 the typed recorders export
+  identifiers and operational data only. Concern and violation descriptions, evidence,
+  reasoning summaries, policy violation reasons, reclassification reasons and drift
+  recommendations are never read, because judge-written or copied text can quote or
+  paraphrase customer content. A named field whose value is not a string, number or
+  boolean is dropped rather than stringified. The generic `recordSpan` / `buildSpan`
+  helpers export whatever attributes their caller names.
 - **Credentials** — API keys and tokens are only used for OTLP transport headers, never recorded
   as span attributes.
 
@@ -48,11 +55,14 @@ the responsibility of the downstream observability platform.
 
 ### 1. Sensitive Data in Span Attributes
 
-**Risk:** Concern descriptions and violation details may contain sensitive information about agent
-behavior or alignment card content.
+**Risk:** Free-text fields (concern descriptions, violation details, policy reasons, drift
+recommendations) may quote or paraphrase customer content or alignment card content.
 
 **Mitigation:**
-- Use OTel SDK's `SpanProcessor` pipeline to filter or redact attributes before export
+- The typed recorders do not export free-text fields (TypeScript 0.14.0+, Python 0.6.0+),
+  and tests assert this for every recorder on every export path
+- Use OTel SDK's `SpanProcessor` pipeline to filter or redact attributes you add yourself
+  through `recordSpan` / `buildSpan`
 - Configure your observability platform's data retention and access controls appropriately
 - The exporter only records structured metadata, not raw thinking blocks or user content
 

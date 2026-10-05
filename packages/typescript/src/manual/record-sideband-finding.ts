@@ -28,7 +28,7 @@ import {
   SAFE_HOUSE_SIDEBAND_PATTERN_TYPE,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 export type SidebandSeverity = "low" | "medium" | "high" | "critical";
 
@@ -109,5 +109,5 @@ export function recordSidebandFinding(
     },
   ];
 
-  return buildSpan(tracer, SPAN_SAFE_HOUSE_SIDEBAND_FINDING, attributes, events);
+  return buildRecorderSpan(tracer, SPAN_SAFE_HOUSE_SIDEBAND_FINDING, attributes, events);
 }

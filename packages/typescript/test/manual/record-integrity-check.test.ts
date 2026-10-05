@@ -193,12 +193,13 @@ describe("recordIntegrityCheck", () => {
     expect(events[0].name).toBe("aip.concern");
     expect(events[0].attributes?.["category"]).toBe("value_misalignment");
     expect(events[0].attributes?.["severity"]).toBe("medium");
-    expect(events[0].attributes?.["description"]).toBe("Minor concern");
+    // The description is free text and is not exported.
+    expect(Object.keys(events[0].attributes ?? {}).sort()).toEqual(["category", "severity"]);
 
     expect(events[1].name).toBe("aip.concern");
     expect(events[1].attributes?.["category"]).toBe("autonomy_violation");
     expect(events[1].attributes?.["severity"]).toBe("high");
-    expect(events[1].attributes?.["description"]).toBe("Major concern");
+    expect(Object.keys(events[1].attributes ?? {}).sort()).toEqual(["category", "severity"]);
   });
 
   it("should add drift alert event when active", () => {

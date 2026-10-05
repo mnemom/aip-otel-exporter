@@ -16,7 +16,7 @@ import {
   AAP_COHERENCE_CONFLICT_COUNT,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 /**
  * Record a CoherenceResult as an OTel span with 5 attributes.
@@ -33,5 +33,5 @@ export function recordCoherence(
     [AAP_COHERENCE_CONFLICT_COUNT]: result?.value_alignment?.conflicts?.length,
   };
 
-  return buildSpan(tracer, SPAN_AAP_CHECK_COHERENCE, attributes);
+  return buildRecorderSpan(tracer, SPAN_AAP_CHECK_COHERENCE, attributes);
 }

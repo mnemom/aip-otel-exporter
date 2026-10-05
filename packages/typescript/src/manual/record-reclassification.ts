@@ -1,8 +1,9 @@
 /**
  * Records a safety reclassification as an OpenTelemetry span.
  *
- * Maps 8 attributes: agent_id, checkpoint_id, trace_id, before_verdict,
- * after_classification, reason, score_before, score_after.
+ * Maps 7 attributes: agent_id, checkpoint_id, trace_id, before_verdict,
+ * after_classification, score_before, score_after. The free-text `reason` is
+ * not exported.
  */
 
 import type { Span, Tracer } from "@opentelemetry/api";
@@ -15,15 +16,14 @@ import {
   RECLASSIFICATION_TRACE_ID,
   RECLASSIFICATION_BEFORE_VERDICT,
   RECLASSIFICATION_AFTER_CLASSIFICATION,
-  RECLASSIFICATION_REASON,
   RECLASSIFICATION_SCORE_BEFORE,
   RECLASSIFICATION_SCORE_AFTER,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 /**
- * Record a reclassification as an OTel span with 8 attributes.
+ * Record a reclassification as an OTel span with 7 attributes.
  */
 export function recordReclassification(
   tracer: Tracer,
@@ -35,10 +35,9 @@ export function recordReclassification(
     [RECLASSIFICATION_TRACE_ID]: input?.trace_id,
     [RECLASSIFICATION_BEFORE_VERDICT]: input?.before_verdict,
     [RECLASSIFICATION_AFTER_CLASSIFICATION]: input?.after_classification,
-    [RECLASSIFICATION_REASON]: input?.reason,
     [RECLASSIFICATION_SCORE_BEFORE]: input?.score_before,
     [RECLASSIFICATION_SCORE_AFTER]: input?.score_after,
   };
 
-  return buildSpan(tracer, SPAN_RECLASSIFICATION, attributes);
+  return buildRecorderSpan(tracer, SPAN_RECLASSIFICATION, attributes);
 }

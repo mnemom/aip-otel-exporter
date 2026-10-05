@@ -7,7 +7,7 @@
  * added when the window summary indicates active drift.
  */
 
-import type { Span, Tracer, Attributes } from "@opentelemetry/api";
+import type { Span, Tracer } from "@opentelemetry/api";
 import type { IntegritySignalInput } from "../types.js";
 
 import {
@@ -71,7 +71,7 @@ import {
   MNEMOM_SPAN_ROLE,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 /**
  * Record an IntegritySignal as an OTel span with all 27 attributes, concern
@@ -157,17 +157,18 @@ export function recordIntegrityCheck(
 
   // --- Events ---
 
-  const events: Array<{ name: string; attributes: Attributes }> = [];
+  const events: Array<{ name: string; attributes: Record<string, unknown> }> = [];
 
-  // One event per concern
+  // One event per concern. Category and severity only: the judge-written
+  // description and evidence can quote or paraphrase the agent's reasoning,
+  // so they are never exported.
   if (cp?.concerns) {
     for (const concern of cp.concerns) {
       events.push({
         name: EVENT_AIP_CONCERN,
         attributes: {
-          category: concern.category,
-          severity: concern.severity,
-          description: concern.description,
+          category: concern?.category,
+          severity: concern?.severity,
         },
       });
     }
@@ -181,5 +182,5 @@ export function recordIntegrityCheck(
     });
   }
 
-  return buildSpan(tracer, SPAN_AIP_INTEGRITY_CHECK, attributes, events);
+  return buildRecorderSpan(tracer, SPAN_AIP_INTEGRITY_CHECK, attributes, events);
 }
