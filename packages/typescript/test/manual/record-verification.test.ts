@@ -97,9 +97,8 @@ describe("recordVerification", () => {
     expect(events[0].name).toBe("aap.violation");
     expect(events[0].attributes?.["type"]).toBe("forbidden_action");
     expect(events[0].attributes?.["severity"]).toBe("critical");
-    expect(events[0].attributes?.["description"]).toBe(
-      "Attempted forbidden action"
-    );
+    // The description is free text and is not exported.
+    expect(Object.keys(events[0].attributes ?? {}).sort()).toEqual(["severity", "type"]);
   });
 
   it("should handle multiple violations", () => {

@@ -15,7 +15,7 @@ from typing import Any
 from opentelemetry import trace
 
 from . import attributes as attr
-from .span_builder import build_span
+from .span_builder import build_recorder_span
 
 
 def record_integrity_check(
@@ -87,7 +87,9 @@ def record_integrity_check(
 
     events: list[dict[str, Any]] = []
 
-    # One event per concern
+    # One event per concern. Category and severity only: the judge-written
+    # description and evidence can quote or paraphrase the agent's reasoning,
+    # so they are never exported.
     if concerns:
         for concern in concerns:
             events.append(
@@ -96,7 +98,6 @@ def record_integrity_check(
                     "attributes": {
                         "category": concern.get("category", ""),
                         "severity": concern.get("severity", ""),
-                        "description": concern.get("description", ""),
                     },
                 }
             )
@@ -110,7 +111,7 @@ def record_integrity_check(
             }
         )
 
-    return build_span(tracer, attr.SPAN_AIP_INTEGRITY_CHECK, attributes, events)
+    return build_recorder_span(tracer, attr.SPAN_AIP_INTEGRITY_CHECK, attributes, events)
 
 
 def record_verification(
@@ -122,7 +123,8 @@ def record_verification(
 
     Maps 8 attributes (result, similarity_score, violations_count,
     warnings_count, trace_id, card_id, duration_ms, checks_performed) and
-    emits one EVENT_AAP_VIOLATION event per violation.
+    emits one EVENT_AAP_VIOLATION event per violation with its type and
+    severity (never its description).
     """
     result = result or {}
     meta = result.get("verification_metadata") or {}
@@ -149,6 +151,7 @@ def record_verification(
 
     events: list[dict[str, Any]] = []
 
+    # Type and severity only; the description is free text.
     if violations:
         for violation in violations:
             events.append(
@@ -157,12 +160,11 @@ def record_verification(
                     "attributes": {
                         "type": violation.get("type", ""),
                         "severity": violation.get("severity", ""),
-                        "description": violation.get("description", ""),
                     },
                 }
             )
 
-    return build_span(tracer, attr.SPAN_AAP_VERIFY_TRACE, attributes, events)
+    return build_recorder_span(tracer, attr.SPAN_AAP_VERIFY_TRACE, attributes, events)
 
 
 def record_coherence(
@@ -192,7 +194,7 @@ def record_coherence(
         ),
     }
 
-    return build_span(tracer, attr.SPAN_AAP_CHECK_COHERENCE, attributes)
+    return build_recorder_span(tracer, attr.SPAN_AAP_CHECK_COHERENCE, attributes)
 
 
 def record_drift(
@@ -205,7 +207,7 @@ def record_drift(
 
     Sets alerts_count and traces_analyzed as span attributes, then emits one
     EVENT_AAP_DRIFT_ALERT event per alert with type, agent, card, similarity,
-    direction, and recommendation.
+    and direction (never the free-text recommendation).
     """
     alerts = alerts or []
 
@@ -230,8 +232,8 @@ def record_drift(
             event_attrs["similarity_score"] = analysis["similarity_score"]
         if analysis.get("drift_direction") is not None:
             event_attrs["drift_direction"] = analysis["drift_direction"]
-        if alert.get("recommendation") is not None:
-            event_attrs["recommendation"] = alert["recommendation"]
+        # The recommendation and indicator descriptions are free text and are
+        # not exported.
 
         events.append(
             {
@@ -240,4 +242,4 @@ def record_drift(
             }
         )
 
-    return build_span(tracer, attr.SPAN_AAP_DETECT_DRIFT, attributes, events)
+    return build_recorder_span(tracer, attr.SPAN_AAP_DETECT_DRIFT, attributes, events)

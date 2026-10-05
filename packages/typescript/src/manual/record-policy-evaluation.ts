@@ -3,10 +3,11 @@
  *
  * Maps 10 attributes: agent_id, policy_id, policy_version, verdict,
  * violations_count, warnings_count, coverage_pct, context, duration_ms,
- * enforcement_mode. Each violation is emitted as a policy.violation event.
+ * enforcement_mode. Each violation is emitted as a policy.violation event
+ * carrying its type, severity and tool (never its reason).
  */
 
-import type { Span, Tracer, Attributes } from "@opentelemetry/api";
+import type { Span, Tracer } from "@opentelemetry/api";
 import type { PolicyEvaluationInput } from "../types.js";
 
 import {
@@ -28,7 +29,7 @@ import {
   MNEMOM_SPAN_ROLE,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 /**
  * Record a policy evaluation as an OTel span with 10 attributes and
@@ -61,16 +62,16 @@ export function recordPolicyEvaluation(
     [MNEMOM_SPAN_ROLE]: input?.role ?? "customer",
   };
 
-  const events: Array<{ name: string; attributes: Attributes }> = [];
+  const events: Array<{ name: string; attributes: Record<string, unknown> }> = [];
 
   if (input?.violations) {
     for (const violation of input.violations) {
-      const eventAttrs: Attributes = {
-        type: violation.type,
-        severity: violation.severity,
-        reason: violation.reason,
+      // Type, severity and tool name only; the reason is free text.
+      const eventAttrs: Record<string, unknown> = {
+        type: violation?.type,
+        severity: violation?.severity,
       };
-      if (violation.tool != null) {
+      if (violation?.tool != null) {
         eventAttrs.tool = violation.tool;
       }
       events.push({
@@ -80,5 +81,5 @@ export function recordPolicyEvaluation(
     }
   }
 
-  return buildSpan(tracer, SPAN_POLICY_EVALUATE, attributes, events);
+  return buildRecorderSpan(tracer, SPAN_POLICY_EVALUATE, attributes, events);
 }

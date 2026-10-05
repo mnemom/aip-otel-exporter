@@ -113,7 +113,6 @@ import {
   RECLASSIFICATION_TRACE_ID,
   RECLASSIFICATION_BEFORE_VERDICT,
   RECLASSIFICATION_AFTER_CLASSIFICATION,
-  RECLASSIFICATION_REASON,
   RECLASSIFICATION_SCORE_BEFORE,
   RECLASSIFICATION_SCORE_AFTER,
 
@@ -140,6 +139,7 @@ import {
 
 import type { OTLPSpan } from "./otlp-serializer.js";
 import { createOTLPSpan, serializeExportPayload } from "./otlp-serializer.js";
+import { scalarAttributes } from "../scalar-attributes.js";
 
 // ---------------------------------------------------------------------------
 // Endpoint normalization
@@ -209,6 +209,29 @@ export function createWorkersExporter(
         console.warn('[aip-otel-exporter] Auto-flush failed:', err instanceof Error ? err.message : 'unknown error');
       });
     }
+  }
+
+  /**
+   * Push a span built by a typed recorder. Span and event attributes go
+   * through `scalarAttributes`, so a named field holding an object or array
+   * is dropped rather than stringified (see scalar-attributes.ts). The
+   * generic `recordSpan` escape hatch does not use this: its caller names
+   * every attribute itself.
+   */
+  function pushRecorderSpan(
+    name: string,
+    attributes: Record<string, unknown>,
+    events?: Array<{ name: string; attributes: Record<string, unknown> }>,
+    durationMs?: number | null,
+  ): void {
+    pushSpan(
+      createOTLPSpan(
+        name,
+        scalarAttributes(attributes),
+        events?.map((e) => ({ name: e.name, attributes: scalarAttributes(e.attributes) })),
+        durationMs,
+      ),
+    );
   }
 
   // -------------------------------------------------------------------
@@ -319,15 +342,16 @@ export function createWorkersExporter(
     const events: Array<{ name: string; attributes: Record<string, unknown> }> =
       [];
 
-    // One event per concern
+    // One event per concern. Category and severity only: the judge-written
+    // description and evidence can quote or paraphrase the agent's reasoning,
+    // so they are never exported.
     if (cp?.concerns) {
       for (const concern of cp.concerns) {
         events.push({
           name: EVENT_AIP_CONCERN,
           attributes: {
-            category: concern.category,
-            severity: concern.severity,
-            description: concern.description,
+            category: concern?.category,
+            severity: concern?.severity,
           },
         });
       }
@@ -345,9 +369,7 @@ export function createWorkersExporter(
     // for `aip.integrity_check` (SLI-2 / SLI-G3 AIP added-latency SLOs). Without
     // it the span is one-shot (~0) and the duration lives only in the
     // analysis_duration_ms attribute (Tempo-only). See exporter 0.10.0/0.11.0.
-    pushSpan(
-      createOTLPSpan(SPAN_AIP_INTEGRITY_CHECK, attributes, events, meta?.analysis_duration_ms),
-    );
+    pushRecorderSpan(SPAN_AIP_INTEGRITY_CHECK, attributes, events, meta?.analysis_duration_ms);
   }
 
   // -------------------------------------------------------------------
@@ -373,19 +395,19 @@ export function createWorkersExporter(
 
     if (result?.violations) {
       for (const violation of result.violations) {
+        // Type and severity only; the description is free text.
         events.push({
           name: EVENT_AAP_VIOLATION,
           attributes: {
-            type: violation.type,
-            severity: violation.severity,
-            description: violation.description,
+            type: violation?.type,
+            severity: violation?.severity,
           },
         });
       }
     }
 
     // Real verification duration → real latency histogram (see integrity-check).
-    pushSpan(createOTLPSpan(SPAN_AAP_VERIFY_TRACE, attributes, events, meta?.duration_ms));
+    pushRecorderSpan(SPAN_AAP_VERIFY_TRACE, attributes, events, meta?.duration_ms);
   }
 
   // -------------------------------------------------------------------
@@ -402,7 +424,7 @@ export function createWorkersExporter(
         result?.value_alignment?.conflicts?.length,
     };
 
-    pushSpan(createOTLPSpan(SPAN_AAP_CHECK_COHERENCE, attributes));
+    pushRecorderSpan(SPAN_AAP_CHECK_COHERENCE, attributes);
   }
 
   // -------------------------------------------------------------------
@@ -431,8 +453,8 @@ export function createWorkersExporter(
           eventAttrs.similarity_score = alert.analysis.similarity_score;
         if (alert?.analysis?.drift_direction != null)
           eventAttrs.drift_direction = alert.analysis.drift_direction;
-        if (alert?.recommendation != null)
-          eventAttrs.recommendation = alert.recommendation;
+        // The recommendation and indicator descriptions are free text and
+        // are not exported.
 
         events.push({
           name: EVENT_AAP_DRIFT_ALERT,
@@ -441,7 +463,7 @@ export function createWorkersExporter(
       }
     }
 
-    pushSpan(createOTLPSpan(SPAN_AAP_DETECT_DRIFT, attributes, events));
+    pushRecorderSpan(SPAN_AAP_DETECT_DRIFT, attributes, events);
   }
 
   // -------------------------------------------------------------------
@@ -475,12 +497,12 @@ export function createWorkersExporter(
 
     if (input?.violations) {
       for (const violation of input.violations) {
+        // Type, severity and tool name only; the reason is free text.
         const eventAttrs: Record<string, unknown> = {
-          type: violation.type,
-          severity: violation.severity,
-          reason: violation.reason,
+          type: violation?.type,
+          severity: violation?.severity,
         };
-        if (violation.tool != null) eventAttrs.tool = violation.tool;
+        if (violation?.tool != null) eventAttrs.tool = violation.tool;
         events.push({
           name: EVENT_POLICY_VIOLATION,
           attributes: eventAttrs,
@@ -490,7 +512,7 @@ export function createWorkersExporter(
 
     // Real policy-eval duration → real latency histogram for `policy.evaluate`
     // (CLPI policy-evaluation-overhead SLO). See integrity-check.
-    pushSpan(createOTLPSpan(SPAN_POLICY_EVALUATE, attributes, events, input?.duration_ms));
+    pushRecorderSpan(SPAN_POLICY_EVALUATE, attributes, events, input?.duration_ms);
   }
 
   // -------------------------------------------------------------------
@@ -504,12 +526,12 @@ export function createWorkersExporter(
       [RECLASSIFICATION_TRACE_ID]: input?.trace_id,
       [RECLASSIFICATION_BEFORE_VERDICT]: input?.before_verdict,
       [RECLASSIFICATION_AFTER_CLASSIFICATION]: input?.after_classification,
-      [RECLASSIFICATION_REASON]: input?.reason,
+      // `reason` is free text and is not exported.
       [RECLASSIFICATION_SCORE_BEFORE]: input?.score_before,
       [RECLASSIFICATION_SCORE_AFTER]: input?.score_after,
     };
 
-    pushSpan(createOTLPSpan(SPAN_RECLASSIFICATION, attributes));
+    pushRecorderSpan(SPAN_RECLASSIFICATION, attributes);
   }
 
   // -------------------------------------------------------------------

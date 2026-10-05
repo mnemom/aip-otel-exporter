@@ -98,14 +98,15 @@ describe("recordDrift", () => {
     expect(events[0].attributes?.["card_id"]).toBe("card-1");
     expect(events[0].attributes?.["similarity_score"]).toBe(0.45);
     expect(events[0].attributes?.["drift_direction"]).toBe("restrictive");
-    expect(events[0].attributes?.["recommendation"]).toBe("review_card");
+    // The recommendation is free text and is not exported.
+    expect(events[0].attributes?.["recommendation"]).toBeUndefined();
 
     // Second alert event
     expect(events[1].name).toBe("aap.drift_alert");
     expect(events[1].attributes?.["alert_type"]).toBe("value_drift");
     expect(events[1].attributes?.["agent_id"]).toBe("agent-2");
     expect(events[1].attributes?.["drift_direction"]).toBe("permissive");
-    expect(events[1].attributes?.["recommendation"]).toBe("alert_operator");
+    expect(events[1].attributes?.["recommendation"]).toBeUndefined();
   });
 
   it("should handle empty alerts array", () => {

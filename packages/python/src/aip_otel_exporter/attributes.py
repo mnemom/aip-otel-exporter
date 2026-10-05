@@ -72,6 +72,7 @@ AIP_DRIFT_INTEGRITY_SIMILARITY = "aip.drift.integrity_similarity"
 AIP_DRIFT_SUSTAINED_CHECKS = "aip.drift.sustained_checks"
 AIP_DRIFT_SEVERITY = "aip.drift.severity"
 AIP_DRIFT_DIRECTION = "aip.drift.drift_direction"
+# Deprecated: never emitted, and will not be (free text). Kept for imports.
 AIP_DRIFT_MESSAGE = "aip.drift.message"
 
 # --- Span Names ---

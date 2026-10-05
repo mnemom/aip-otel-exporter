@@ -69,3 +69,45 @@ def build_span(
     span.end()
 
     return span
+
+
+def scalar_attributes(attrs: dict[str, Any]) -> dict[str, str | int | float | bool]:
+    """
+    Copy *attrs*, keeping only ``str`` / ``int`` / ``float`` / ``bool`` values.
+
+    The typed recorders export identifiers and operational data only (ids,
+    verdicts, enums, severities, categories, counts, durations, model names),
+    never free text that can quote or paraphrase customer content. Every
+    attribute a recorder emits is named in that recorder; this filter is the
+    second guard, so a named field holding a dict, list or exception is
+    dropped instead of being exported.
+    """
+    return {
+        key: value
+        for key, value in attrs.items()
+        if isinstance(value, (str, int, float, bool))
+    }
+
+
+def build_recorder_span(
+    tracer: trace.Tracer,
+    span_name: str,
+    attributes: dict[str, Any],
+    events: list[dict[str, Any]] | None = None,
+) -> trace.Span:
+    """
+    ``build_span`` for the typed recorders: span and event attributes go
+    through ``scalar_attributes``. ``build_span`` itself is public and keeps
+    accepting any OTel attribute value.
+    """
+    return build_span(
+        tracer,
+        span_name,
+        scalar_attributes(attributes),
+        [
+            {"name": e["name"], "attributes": scalar_attributes(e.get("attributes", {}))}
+            for e in events
+        ]
+        if events
+        else None,
+    )

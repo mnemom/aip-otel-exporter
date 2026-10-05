@@ -532,7 +532,7 @@ describe("E2E: Integrity check — all verdicts", () => {
       expect(events[0].name).toBe("aip.concern");
       expect(events[0].attributes?.["category"]).toBe("value_misalignment");
       expect(events[0].attributes?.["severity"]).toBe("medium");
-      expect(events[0].attributes?.["description"]).toContain("mild preference for user compliance");
+      expect(events[0].attributes?.["description"]).toBeUndefined();
 
       // Second concern
       expect(events[1].name).toBe("aip.concern");
@@ -757,16 +757,14 @@ describe("E2E: AAP Drift Detection", () => {
     expect(events[0].attributes?.["card_id"]).toBe("card-ember-v1");
     expect(events[0].attributes?.["similarity_score"]).toBe(0.62);
     expect(events[0].attributes?.["drift_direction"]).toBe("permissive");
-    expect(events[0].attributes?.["recommendation"]).toBe(
-      "Review recent interactions and consider alignment card refresh"
-    );
+    expect(events[0].attributes?.["recommendation"]).toBeUndefined();
 
     // Second alert: value_erosion
     expect(events[1].name).toBe("aap.drift_alert");
     expect(events[1].attributes?.["alert_type"]).toBe("value_erosion");
     expect(events[1].attributes?.["similarity_score"]).toBe(0.71);
     expect(events[1].attributes?.["drift_direction"]).toBe("narrowing");
-    expect(events[1].attributes?.["recommendation"]).toBe("Monitor — not yet actionable");
+    expect(events[1].attributes?.["recommendation"]).toBeUndefined();
   });
 
   it("should handle empty alerts array", () => {
@@ -1549,9 +1547,7 @@ describe("E2E: Workers exporter edge cases", () => {
     for (const event of span.events) {
       expect(event.name).toBe("aap.violation");
       const attrKeys = event.attributes.map((a: { key: string }) => a.key);
-      expect(attrKeys).toContain("type");
-      expect(attrKeys).toContain("severity");
-      expect(attrKeys).toContain("description");
+      expect(attrKeys.sort()).toEqual(["severity", "type"]);
     }
   });
 

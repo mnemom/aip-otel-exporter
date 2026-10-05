@@ -3,10 +3,10 @@
  *
  * Maps 8 attributes (result, similarity_score, violations_count, warnings_count,
  * trace_id, card_id, duration_ms, checks_performed) and emits one EVENT_AAP_VIOLATION
- * event per violation.
+ * event per violation carrying its type and severity (never its description).
  */
 
-import type { Span, Tracer, Attributes } from "@opentelemetry/api";
+import type { Span, Tracer } from "@opentelemetry/api";
 import type { VerificationResultInput } from "../types.js";
 
 import {
@@ -22,7 +22,7 @@ import {
   AAP_VERIFICATION_CHECKS_PERFORMED,
 } from "../attributes.js";
 
-import { buildSpan } from "./span-builder.js";
+import { buildRecorderSpan } from "./span-builder.js";
 
 /**
  * Record a VerificationResult as an OTel span with 8 attributes and per-violation events.
@@ -44,20 +44,20 @@ export function recordVerification(
     [AAP_VERIFICATION_CHECKS_PERFORMED]: meta?.checks_performed?.join(", "),
   };
 
-  const events: Array<{ name: string; attributes: Attributes }> = [];
+  const events: Array<{ name: string; attributes: Record<string, unknown> }> = [];
 
   if (result?.violations) {
     for (const violation of result.violations) {
+      // Type and severity only; the description is free text.
       events.push({
         name: EVENT_AAP_VIOLATION,
         attributes: {
-          type: violation.type,
-          severity: violation.severity,
-          description: violation.description,
+          type: violation?.type,
+          severity: violation?.severity,
         },
       });
     }
   }
 
-  return buildSpan(tracer, SPAN_AAP_VERIFY_TRACE, attributes, events);
+  return buildRecorderSpan(tracer, SPAN_AAP_VERIFY_TRACE, attributes, events);
 }

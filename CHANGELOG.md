@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The typed recorders no longer export free text.** Spans now carry
+  identifiers and operational data only: ids, verdicts, enums, severities,
+  categories, counts, durations, tool names and model names. Free text written
+  by a judge or copied from an input can quote or paraphrase customer content,
+  and the trace backend receiving these spans may be a third party. Removed,
+  in every recorder (Workers exporter, Node SDK recorders and the Python
+  recorders):
+  - `aip.concern` event: `description`
+  - `aap.violation` event: `description`
+  - `policy.violation` event: `reason` (the `tool` name stays)
+  - `gen_ai.safety.reclassification.reason` span attribute
+  - `aap.drift_alert` event: `recommendation`
+
+  Fields the recorders never exported (`evidence`, `reasoning_summary`,
+  warning, conflict and drift-indicator descriptions) are covered by the same
+  tests so they cannot be added later by accident.
+
+  The recorders also fail closed: every attribute is named in the recorder,
+  and a named field whose value is not a string, number or boolean (an object,
+  an array, an `Error`) is now dropped instead of being stringified or set.
+  `recordSpan` and the public `buildSpan` / `build_span` helpers are unchanged.
+
+  `RECLASSIFICATION_REASON` and `AIP_DRIFT_MESSAGE` stay exported so existing
+  imports compile, but are marked deprecated and are not emitted. Consumers
+  that query or alert on the removed attributes need to switch to the
+  structured fields (`category`, `severity`, `type`, `tool`, the verdicts).
+
+  TypeScript package version bumped to `0.14.0`; Python package to `0.6.0`.
+
 ### Added
 
 - **`cell_id` resource option on `createWorkersExporter`** (Cell Architecture

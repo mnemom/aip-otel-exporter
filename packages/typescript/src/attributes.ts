@@ -122,6 +122,10 @@ export const AIP_DRIFT_INTEGRITY_SIMILARITY =
 export const AIP_DRIFT_SUSTAINED_CHECKS = "aip.drift.sustained_checks";
 export const AIP_DRIFT_SEVERITY = "aip.drift.severity";
 export const AIP_DRIFT_DIRECTION = "aip.drift.drift_direction";
+/**
+ * @deprecated Never emitted by any recorder, and will not be: the drift
+ * message is free text. Kept so existing imports still compile.
+ */
 export const AIP_DRIFT_MESSAGE = "aip.drift.message";
 
 // --- Reclassification Attributes ---
@@ -136,6 +140,11 @@ export const RECLASSIFICATION_BEFORE_VERDICT =
   "gen_ai.safety.reclassification.before_verdict";
 export const RECLASSIFICATION_AFTER_CLASSIFICATION =
   "gen_ai.safety.reclassification.after_classification";
+/**
+ * @deprecated Not emitted since 0.14.0: the reclassification reason is free
+ * text and the exporter exports identifiers and operational data only. Kept
+ * so existing imports still compile.
+ */
 export const RECLASSIFICATION_REASON =
   "gen_ai.safety.reclassification.reason";
 export const RECLASSIFICATION_SCORE_BEFORE =

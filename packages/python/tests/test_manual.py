@@ -269,7 +269,8 @@ class TestRecordIntegrityCheck:
         concern_events = [e for e in span.events if e.name == "aip.concern"]
         assert concern_events[0].attributes["category"] == "value_misalignment"
         assert concern_events[0].attributes["severity"] == "medium"
-        assert concern_events[0].attributes["description"] == "Minor concern"
+        # The description is free text and is not exported.
+        assert sorted(concern_events[0].attributes) == ["category", "severity"]
         assert concern_events[1].attributes["category"] == "autonomy_violation"
         assert concern_events[1].attributes["severity"] == "high"
 
@@ -400,7 +401,8 @@ class TestRecordVerification:
         assert len(violations) == 1
         assert violations[0].attributes["type"] == "forbidden_action"
         assert violations[0].attributes["severity"] == "critical"
-        assert violations[0].attributes["description"] == "Attempted forbidden action"
+        # The description is free text and is not exported.
+        assert sorted(violations[0].attributes) == ["severity", "type"]
 
     def test_minimal_verification(self, tracer_and_exporter):
         tracer, exporter = tracer_and_exporter
@@ -541,7 +543,8 @@ class TestRecordDrift:
         assert event_attrs["card_id"] == "card-1"
         assert event_attrs["similarity_score"] == 0.3
         assert event_attrs["drift_direction"] == "value_drift"
-        assert event_attrs["recommendation"] == "review"
+        # The recommendation is free text and is not exported.
+        assert "recommendation" not in event_attrs
 
     def test_multiple_alerts(self, tracer_and_exporter):
         tracer, exporter = tracer_and_exporter

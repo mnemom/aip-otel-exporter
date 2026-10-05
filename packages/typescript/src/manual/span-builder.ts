@@ -10,6 +10,7 @@
 
 import { SpanKind, SpanStatusCode, context, trace } from "@opentelemetry/api";
 import type { Span, Tracer, Attributes } from "@opentelemetry/api";
+import { scalarAttributes } from "../scalar-attributes.js";
 
 /** Maximum length for string attribute values. Longer values are truncated. */
 const MAX_ATTRIBUTE_LENGTH = 4096;
@@ -74,4 +75,25 @@ export function buildSpan(
   span.end();
 
   return span;
+}
+
+/**
+ * `buildSpan` for the typed recorders: span and event attributes go through
+ * `scalarAttributes`, so a named field holding an object or array is dropped
+ * rather than set (see scalar-attributes.ts). `buildSpan` itself is public and
+ * keeps accepting any OTel attribute value for callers that build their own
+ * spans.
+ */
+export function buildRecorderSpan(
+  tracer: Tracer,
+  spanName: string,
+  attributes: Record<string, unknown>,
+  events?: Array<{ name: string; attributes: Record<string, unknown> }>,
+): Span {
+  return buildSpan(
+    tracer,
+    spanName,
+    scalarAttributes(attributes),
+    events?.map((e) => ({ name: e.name, attributes: scalarAttributes(e.attributes) })),
+  );
 }
