@@ -195,7 +195,7 @@ All operations are sub-0.01ms mean. Zero measurable overhead on hot paths.
 
 ## Requirements
 
-- Python >= 3.9
+- Python >= 3.10
 - OpenTelemetry SDK >= 1.20.0 (for `[otel]` extra)
 
 ## License
