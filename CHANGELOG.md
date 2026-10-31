@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Python 3.9 is no longer supported; the Python package now requires
+  Python 3.10 or later.** `opentelemetry-api` 1.45.1, the first release that
+  fixes GHSA-xcq7-p3pf-p88h (unbounded `tracestate` parsing), requires
+  Python 3.10, so the dev and CI pins can no longer carry a 3.9 branch.
+
 - **The typed recorders no longer export free text.** Spans now carry
   identifiers and operational data only: ids, verdicts, enums, severities,
   categories, counts, durations, tool names and model names. Free text written

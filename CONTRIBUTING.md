@@ -62,7 +62,7 @@ pytest tests/ --cov=src/aip_otel_exporter  # With coverage
 
 - **ruff** for linting and formatting (`ruff check`, `ruff format`)
 - **mypy** in strict mode for type checking
-- Target: Python 3.9+
+- Target: Python 3.10+
 - Line length: 100
 
 ## SDK Parity
